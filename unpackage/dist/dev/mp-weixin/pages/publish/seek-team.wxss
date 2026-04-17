@@ -1,0 +1,404 @@
+
+.publish-container.data-v-9520fa2f {
+  background-color: #f7f8fa;
+  min-height: 100vh;
+  padding-bottom: 100px;
+}
+
+/* 顶部导航栏 */
+.top-nav.data-v-9520fa2f {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: white;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.nav-left.data-v-9520fa2f {
+  display: flex;
+  align-items: center;
+}
+.back-btn.data-v-9520fa2f {
+  font-size: 20px;
+  color: #717784;
+  margin-right: 15px;
+}
+.nav-title.data-v-9520fa2f {
+  font-size: 18px;
+  font-weight: bold;
+  color: #4A90E2;
+}
+.help-btn.data-v-9520fa2f {
+  font-size: 18px;
+  color: #717784;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 标签切换 */
+.tab-switcher.data-v-9520fa2f {
+  display: flex;
+  background-color: #eceef1;
+  border-radius: 25px;
+  padding: 4px;
+  margin: 20px;
+}
+.tab-btn.data-v-9520fa2f {
+  flex: 1;
+  padding: 12px;
+  border-radius: 20px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: #717784;
+  transition: all 0.3s;
+}
+.tab-btn.active.data-v-9520fa2f {
+  background-color: white;
+  color: #4A90E2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 表单内容 */
+.form-content.data-v-9520fa2f {
+  padding: 0 20px;
+}
+
+/* 表单字段 */
+.form-field.data-v-9520fa2f {
+  margin-bottom: 24px;
+}
+.field-label.data-v-9520fa2f {
+  font-size: 12px;
+  font-weight: bold;
+  color: #717784;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  display: block;
+  padding-left: 4px;
+}
+.field-header.data-v-9520fa2f {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.field-hint.data-v-9520fa2f {
+  font-size: 10px;
+  color: #717784;
+}
+.field-hint-en.data-v-9520fa2f {
+  font-size: 10px;
+  color: #717784;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.search-input-wrapper.data-v-9520fa2f {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  background-color: white;
+  border-radius: 12px;
+  padding: 0 16px;
+  border: 1px solid #c1c6d5;
+}
+.search-icon.data-v-9520fa2f {
+  font-size: 20px;
+  margin-right: 12px;
+}
+.search-input.data-v-9520fa2f {
+  flex: 1;
+  padding: 16px 0;
+  font-size: 14px;
+  color: #191c1e;
+  border: none;
+  outline: none;
+}
+.search-input.data-v-9520fa2f:focus {
+  outline: none;
+}
+
+/* 技能标签 */
+.skill-tags.data-v-9520fa2f {
+  display: flex;
+  flex-wrap: wrap;
+}
+.skill-tag.data-v-9520fa2f {
+  display: flex;
+  align-items: center;
+  background-color: #6bfbcb;
+  color: #007257;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: bold;
+}
+.remove-btn.data-v-9520fa2f {
+  margin-left: 6px;
+  font-size: 14px;
+  opacity: 0.6;
+  cursor: pointer;
+}
+.add-skill-btn.data-v-9520fa2f {
+  display: flex;
+  align-items: center;
+  background-color: #eceef1;
+  color: #4A90E2;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.add-icon.data-v-9520fa2f {
+  margin-right: 4px;
+}
+
+/* 文本域 */
+.field-textarea.data-v-9520fa2f {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  background-color: white;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #191c1e;
+  border: 1px solid #c1c6d5;
+  outline: none;
+  resize: none;
+}
+.field-textarea.data-v-9520fa2f:focus {
+  border-color: #4A90E2;
+}
+
+/* 预览区域 */
+.preview-section.data-v-9520fa2f {
+  margin-top: 32px;
+}
+.preview-header.data-v-9520fa2f {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.pulse-dot.data-v-9520fa2f {
+  width: 6px;
+  height: 6px;
+  background-color: #6bfbcb;
+  border-radius: 50%;
+  animation: pulse-9520fa2f 2s infinite;
+}
+@keyframes pulse-9520fa2f {
+0%, 100% { opacity: 1;
+}
+50% { opacity: 0.5;
+}
+}
+.preview-title.data-v-9520fa2f {
+  font-size: 16px;
+  font-weight: bold;
+  color: #191c1e;
+}
+.preview-card.data-v-9520fa2f {
+  width: 100%;
+  box-sizing: border-box;
+  background-color: white;
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(63, 142, 247, 0.06);
+}
+.preview-card-bg.data-v-9520fa2f {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 128px;
+  height: 128px;
+  background: rgba(74, 144, 226, 0.05);
+  border-radius: 50%;
+  filter: blur(48px);
+}
+.preview-content.data-v-9520fa2f {
+  position: relative;
+  z-index: 1;
+}
+.preview-user.data-v-9520fa2f {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+.preview-avatar-wrapper.data-v-9520fa2f {
+  position: relative;
+  margin-right: 16px;
+}
+.preview-avatar.data-v-9520fa2f {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  border: 4px solid #f2f4f7;
+}
+.online-indicator.data-v-9520fa2f {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  background-color: #3ED6A9;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+.preview-user-info.data-v-9520fa2f {
+  flex: 1;
+}
+.preview-name-row.data-v-9520fa2f {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.preview-name.data-v-9520fa2f {
+  font-size: 16px;
+  font-weight: bold;
+  color: #191c1e;
+}
+.preview-role.data-v-9520fa2f {
+  font-size: 12px;
+  color: #717784;
+  font-weight: normal;
+}
+.preview-school.data-v-9520fa2f {
+  font-size: 10px;
+  color: #4A90E2;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.preview-status.data-v-9520fa2f {
+  background-color: rgba(107, 251, 203, 0.1);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.status-text.data-v-9520fa2f {
+  font-size: 10px;
+  font-weight: bold;
+  color: #006c52;
+}
+.preview-bio.data-v-9520fa2f {
+  font-size: 12px;
+  color: #414753;
+  line-height: 1.6;
+  font-style: italic;
+  margin-bottom: 16px;
+  display: block;
+}
+.preview-footer.data-v-9520fa2f {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #f2f4f7;
+}
+.preview-skill-tags.data-v-9520fa2f {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.skill-tag.data-v-9520fa2f {
+  font-size: 12px;
+  background-color: #E8F0FE;
+  color: #4A90E2;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
+.skill-icon-wrapper.data-v-9520fa2f {
+  width: 24px;
+  height: 24px;
+  background-color: rgba(74, 144, 226, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.skill-icon.data-v-9520fa2f {
+  font-size: 12px;
+}
+.preview-time.data-v-9520fa2f {
+  font-size: 10px;
+  color: #717784;
+}
+
+/* 提交按钮 */
+.submit-section.data-v-9520fa2f {
+  padding: 16px 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.submit-btn.data-v-9520fa2f {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px;
+  background: linear-gradient(135deg, #005bb2 0%, #1173db 100%);
+  color: white;
+  border-radius: 30px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 91, 178, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.submit-icon.data-v-9520fa2f {
+  font-size: 18px;
+}
+.submit-text.data-v-9520fa2f {
+  font-size: 16px;
+  font-weight: bold;
+}
+.submit-hint.data-v-9520fa2f {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  color: #717784;
+  margin-top: 16px;
+  padding: 0 32px;
+  line-height: 1.5;
+}
+
+/* 成功提示 */
+.success-toast.data-v-9520fa2f {
+  position: fixed;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #191c1e;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+}
+.success-icon.data-v-9520fa2f {
+  font-size: 18px;
+  margin-right: 8px;
+}
+.success-text.data-v-9520fa2f {
+  font-size: 14px;
+  font-weight: bold;
+}

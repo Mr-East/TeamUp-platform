@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>学术脉搏 - 首页</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#005db6",
+                        "surface-bright": "#f7f9fc",
+                        "inverse-surface": "#2d3133",
+                        "tertiary-fixed": "#ffdcc2",
+                        "on-primary-container": "#fefcff",
+                        "outline": "#717784",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f2f4f7",
+                        "surface-dim": "#d8dadd",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#c1c6d5",
+                        "on-primary-fixed": "#001b3d",
+                        "on-secondary-container": "#007257",
+                        "tertiary-fixed-dim": "#ffb77b",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#eff1f4",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "secondary-container": "#6bfbcb",
+                        "error": "#ba1a1a",
+                        "secondary": "#006c52",
+                        "on-tertiary-container": "#fffbff",
+                        "surface": "#f7f9fc",
+                        "surface-container": "#eceef1",
+                        "surface-container-high": "#e6e8eb",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "primary": "#005bb2",
+                        "on-secondary-fixed-variant": "#00513d",
+                        "surface-variant": "#e0e3e6",
+                        "secondary-fixed": "#6bfbcb",
+                        "secondary-fixed-dim": "#49deb0",
+                        "primary-container": "#1173db",
+                        "primary-fixed-dim": "#a9c7ff",
+                        "on-background": "#191c1e",
+                        "on-surface-variant": "#414753",
+                        "inverse-primary": "#a9c7ff",
+                        "tertiary": "#8c4c00",
+                        "tertiary-container": "#b06000",
+                        "on-primary-fixed-variant": "#00468b",
+                        "on-tertiary-fixed-variant": "#6d3a00",
+                        "background": "#f7f9fc",
+                        "primary-fixed": "#d6e3ff",
+                        "surface-container-highest": "#e0e3e6",
+                        "on-tertiary-fixed": "#2e1500",
+                        "on-secondary-fixed": "#002117"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-header {
+            backdrop-filter: blur(20px);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xl">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<button class="text-blue-600 dark:text-blue-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors p-2 rounded-full Active: scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-lg tracking-tight text-blue-600 dark:text-blue-400">学术脉搏</h1>
+</div>
+<button class="text-blue-600 dark:text-blue-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors p-2 rounded-full Active: scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+</div>
+</header>
+<main class="pt-20 pb-24 px-4 max-w-lg mx-auto">
+<!-- Search Bar -->
+<section class="mb-8">
+<div class="relative group">
+<div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-outline">
+<span class="material-symbols-outlined text-xl" data-icon="search">search</span>
+</div>
+<input class="w-full h-14 pl-12 pr-4 bg-surface-container-high border-none rounded-xl text-on-surface placeholder:text-outline focus:ring-2 focus:ring-primary/20 transition-all" placeholder="搜索竞赛 / 技能 / 队伍" type="text"/>
+</div>
+</section>
+<!-- Banner Carousel (Simplified as Hero Card) -->
+<section class="mb-10">
+<div class="relative aspect-[16/9] rounded-xl overflow-hidden group">
+<img alt="校园生活" class="w-full h-full object-cover" data-alt="Modern university campus building with glass facade reflected in a still pond at sunset with soft blue and orange hues" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTtOcSNRoQ-5fNirVZ3o5FaI4XVjx74NLu5Ia5ZNGqv2pbOPOXAoqcl_xo490-TsRAWw3hZi9yw0hDmK3caIQQ9f5JSZFvOBuj-jXIFXl3P36rkcUVE5IITU5LqEc-UPxgWjE5WWxIMk8XRpmHwYr4AA_27wvM6xkHhc9CfwWDrUzZm04cHhjXUTR0nDDHSvFp9tNqQIPwqzs78qcKLWJf-nGJlXDFrh8SQiOoVjiegIJp5LRkVYXO8_6wkYoQDg7kZlxWXnoPxeQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/80 via-transparent to-transparent"></div>
+<div class="absolute bottom-0 p-6">
+<span class="inline-block px-3 py-1 mb-2 bg-secondary text-on-secondary text-[10px] font-bold uppercase tracking-widest rounded-sm">精选活动</span>
+<h2 class="font-headline font-bold text-2xl text-white leading-tight">2024 全国人工智能创新挑战赛</h2>
+<p class="text-white/80 text-sm mt-1 font-body">报名还有14天截止</p>
+</div>
+<div class="absolute bottom-6 right-6 flex gap-1">
+<div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-white/40"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-white/40"></div>
+</div>
+</div>
+</section>
+<!-- Section 1: Official Recommendations -->
+<section class="mb-10">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline font-bold text-xl text-on-surface">官方推荐</h3>
+<button class="text-primary font-semibold text-xs uppercase tracking-wider">查看全部</button>
+</div>
+<div class="grid grid-cols-1 gap-4">
+<!-- Bento-style Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-5 flex gap-4 transition-all hover:translate-y-[-2px]">
+<div class="w-20 h-20 bg-surface-container-low rounded-lg overflow-hidden flex-shrink-0">
+<img alt="设计比赛" class="w-full h-full object-cover grayscale" data-alt="Abstract 3D architectural render with flowing white curves and minimalist aesthetic in soft daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8U-cVaLAOSf9jJcbgzLO0sEOZWxKKx6kqLyQUVnSiy5y3Lj0X0_7RGTXb60G4JfPY8fqqrpgmRgWu68fjz_OMUfGpAzYhyWIjsAlckieLSXXVGVywFvIg8q4hqW6tJZ58N6X8RKI1ldzm5psSXm1maOt7cFAFOsPBbZh14SadedVuC8_7Xr1W6-f-69RG9KEnnFrhQ_s6tC-C5vMHU68-NIf7bDLNj0hFiIngkDVHBw9XO0yw95wA7252ZFKeUvBH41J4kNj7xDs"/>
+</div>
+<div class="flex flex-col justify-center">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_4px_#006c52]"></div>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-tighter">火热招募中</span>
+</div>
+<h4 class="font-headline font-bold text-on-surface text-base">2024 UI/UX 学生设计奖</h4>
+<p class="text-outline text-xs mt-1">由设计学院组织</p>
+</div>
+</div>
+<!-- Bento-style Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-5 flex gap-4 transition-all hover:translate-y-[-2px]">
+<div class="w-20 h-20 bg-surface-container-low rounded-lg overflow-hidden flex-shrink-0">
+<img alt="科学展览" class="w-full h-full object-cover grayscale" data-alt="Microscopic view of crystalline structures with sharp edges and iridescent light reflections on dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiub2gmQMXvlMaQCrJqONQWscrj6oMYCmL_2Oh_IEqAfM3JSY3nr_foygUda5xMWWRGvdAT1QY-EsrX-w8mr5KMcdQWlQgSBcBVAV0czpuN6AYIyi_aY64_1fGqKbf2s0tqt03om-7HWiTlcLzueIHxeSqqoQsuoTcd_6hi86vbg4bHI2HNr29_1AGKdhASVsSL7RpdYthNa5u1eyC8L92XItOAWNzEFIEW-RF5VxyLMz8ecz75BAWY-SjrnY7YfCKtunB8iBPlJw"/>
+</div>
+<div class="flex flex-col justify-center">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_4px_#006c52]"></div>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-tighter">火热招募中</span>
+</div>
+<h4 class="font-headline font-bold text-on-surface text-base">年度量子计算黑客马拉松</h4>
+<p class="text-outline text-xs mt-1">STEM 教师卓越计划</p>
+</div>
+</div>
+<!-- Bento-style Card 3 -->
+<div class="bg-surface-container-lowest rounded-xl p-5 flex gap-4 transition-all hover:translate-y-[-2px]">
+<div class="w-20 h-20 bg-surface-container-low rounded-lg overflow-hidden flex-shrink-0">
+<img alt="数据科学" class="w-full h-full object-cover grayscale" data-alt="Modern data visualization on a glass screen with glowing blue lines and digital geometric shapes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAITpNR5JY7YWZJwgon0TdJMnA_-EhTny_BHSazh8Kp_GN0alm7eLU4tJP6JtyVlqTbPTZSbOffiaEZYfRGp_s0KUdBCMCaDa_FH5krjTZdk4oD2RwuZCwgngva11qJWU9zycvtQDdg7x4KSgaQoV5RxJJLFBvFS3ShdsgFrVE45GoahHdqnGbtRv_fna2yIj79ed16s8zGP0T4_Ouvj4dXI7MGjsCIFnCSmJ8jVuUsOjLSP-7ejCef2cZScBBdFP24zlhTNs13aOc"/>
+</div>
+<div class="flex flex-col justify-center">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_4px_#006c52]"></div>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-tighter">火热招募中</span>
+</div>
+<h4 class="font-headline font-bold text-on-surface text-base">大数据商业分析赛</h4>
+<p class="text-outline text-xs mt-1">由科技环球公司赞助</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Hot Recruitment -->
+<section class="mb-10">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline font-bold text-xl text-on-surface">热门招募</h3>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline cursor-pointer" data-icon="chevron_left">chevron_left</span>
+<span class="material-symbols-outlined text-primary cursor-pointer" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<div class="flex overflow-x-auto gap-4 hide-scrollbar pb-4 -mx-4 px-4">
+<!-- Scroll Card 1 -->
+<div class="min-w-[280px] bg-surface-container-lowest p-6 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
+<div class="flex justify-between items-start mb-4">
+<h4 class="font-headline font-bold text-on-surface leading-snug w-2/3">机器人足球杯战队</h4>
+<span class="bg-error-container text-on-error-container text-[10px] font-bold px-2 py-0.5 rounded-sm">仅剩 2 天</span>
+</div>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-2 py-1 rounded-sm">ROS</span>
+<span class="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-2 py-1 rounded-sm">C++</span>
+<span class="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-2 py-1 rounded-sm">OpenCV</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="portrait of a young student smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyB-oj2AnLWX55AGe-8WHxUVsrFhC5lHcy5pNTb2AscDPRMgtOvw7MHVk9f2ZVqeoLRfd6y8mI8IGtiXRkaJ5wpFXjyhrgJxgjlyReiEFob2skrxSjWM4WTOE7PF8bA51VUhkpKlQ1FXi3n4VmcUuvezwa9HfkzLJuyjZMDlNb-c4AiKdV0wtAIwgwiPIX6M7hZlNo0FVf5wrPg-SmI6tiLPnBDE__NXSGu83F5KFDFKhlsVho_wYgUztOeGsI_QJTAc7S6XT5Irg"/>
+</div>
+<div class="w-7 h-7 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="portrait of a young woman professional" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRdJPgZ8K8JLYDFTY9PPIoHUbZLUkPe81xmbATtzzCs7N1dAlcDOGDO9VJKXrAciOMJoOAiJslbUOF9KUUv25ZhP6x86n3krdgrByTsSmdFl7N_XMl1ZmrorW7RAtuBdhT7P707-hVxbFgAOtpu1igLL9m8ssLNKWQfPN2C83dIssBSchtx3DMfGKXUM-jO5rTGeY6oMc7ByvgG3luLG7eOVFOlXaRa8BGfBCV73vWowWlp1TkAd9had1ANgzw8wGMrCA51p_37ZQ"/>
+</div>
+<div class="w-7 h-7 rounded-full border-2 border-white bg-surface-container-high flex items-center justify-center text-[10px] font-bold">+2</div>
+</div>
+<p class="text-outline text-xs">急需 3 / 5 人</p>
+</div>
+</div>
+<!-- Scroll Card 2 -->
+<div class="min-w-[280px] bg-surface-container-lowest p-6 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
+<div class="flex justify-between items-start mb-4">
+<h4 class="font-headline font-bold text-on-surface leading-snug w-2/3">可持续发展挑战赛</h4>
+<span class="bg-primary-fixed text-on-primary-fixed-variant text-[10px] font-bold px-2 py-0.5 rounded-sm">报名还有8天</span>
+</div>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-2 py-1 rounded-sm">Figma</span>
+<span class="bg-secondary-container text-on-secondary-container text-[10px] font-bold px-2 py-1 rounded-sm">React Native</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="portrait of a young man with glasses" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQkQUhM5KIrlJoKXh13STKdla9Cfkoh3T0dMFLrWdi9pUVKA_mdz31dD3W6zx6m8_ORAgAeZPKKv8LkOIEJH7vTCrCRBg1andwCRii8g8xdQDoZf1hYksAZjF2axJSQzNYGz8K2vqriZuCUk4iRQmabpsyJMFdo3hYYkXcmQjtC-66c4ldJlF4k1cEgIPR5CsMltMclYtf6ZwogKKQy2xOPElCaA2VL-gWowL7kxQw7I0nCOTSiryRjUZrrIX0K7x7nzMZK5AOOqE"/>
+</div>
+<div class="w-7 h-7 rounded-full border-2 border-white bg-surface-container-high flex items-center justify-center text-[10px] font-bold">+1</div>
+</div>
+<p class="text-outline text-xs">急需 2 / 3 人</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed right-6 bottom-24 w-14 h-14 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(0,91,178,0.25)] z-40 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-2xl" data-icon="add">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 pb-safe bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_24px_rgba(0,91,178,0.08)]">
+<div class="flex justify-around items-center h-16 w-full px-4">
+<!-- Active: Home -->
+<a class="flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 scale-110 transition-transform Active: scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">首页</span>
+</a>
+<!-- Inactive: Discover -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 grayscale hover:text-blue-500 dark:hover:text-blue-300 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">广场</span>
+</a>
+<!-- Inactive: Messages -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 grayscale hover:text-blue-500 dark:hover:text-blue-300 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">消息</span>
+</a>
+<!-- Inactive: Profile -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 grayscale hover:text-blue-500 dark:hover:text-blue-300 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Inter'] text-[10px] font-semibold uppercase tracking-widest mt-1">我的</span>
+</a>
+</div>
+</nav>
+</body></html>

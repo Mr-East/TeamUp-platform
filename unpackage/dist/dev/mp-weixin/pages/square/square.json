@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "竞赛广场",
+  "usingComponents": {
+    "talent-card": "../../components/TalentCard/TalentCard"
+  }
+}

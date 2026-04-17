@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#e0e3e6",
+                    "on-tertiary-fixed-variant": "#6d3a00",
+                    "surface-bright": "#f7f9fc",
+                    "outline-variant": "#c1c6d5",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed": "#6bfbcb",
+                    "surface-container": "#eceef1",
+                    "on-primary-container": "#fefcff",
+                    "tertiary": "#8c4c00",
+                    "secondary-container": "#6bfbcb",
+                    "primary-fixed-dim": "#a9c7ff",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed-dim": "#ffb77b",
+                    "surface-container-lowest": "#ffffff",
+                    "primary": "#005bb2",
+                    "on-tertiary": "#ffffff",
+                    "inverse-surface": "#2d3133",
+                    "background": "#f7f9fc",
+                    "on-tertiary-fixed": "#2e1500",
+                    "error": "#ba1a1a",
+                    "primary-container": "#1173db",
+                    "on-surface": "#191c1e",
+                    "on-tertiary-container": "#fffbff",
+                    "surface-container-high": "#e6e8eb",
+                    "on-secondary-fixed-variant": "#00513d",
+                    "on-secondary-fixed": "#002117",
+                    "on-error": "#ffffff",
+                    "surface-container-highest": "#e0e3e6",
+                    "on-primary-fixed-variant": "#00468b",
+                    "error-container": "#ffdad6",
+                    "tertiary-container": "#b06000",
+                    "surface": "#f7f9fc",
+                    "on-secondary": "#ffffff",
+                    "surface-tint": "#005db6",
+                    "inverse-primary": "#a9c7ff",
+                    "surface-dim": "#d8dadd",
+                    "on-primary-fixed": "#001b3d",
+                    "primary-fixed": "#d6e3ff",
+                    "tertiary-fixed": "#ffdcc2",
+                    "secondary-fixed-dim": "#49deb0",
+                    "outline": "#717784",
+                    "surface-container-low": "#f2f4f7",
+                    "on-secondary-container": "#007257",
+                    "secondary": "#006c52",
+                    "on-background": "#191c1e",
+                    "on-surface-variant": "#414753",
+                    "inverse-on-surface": "#eff1f4"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopAppBar Component -->
+<nav class="fixed top-0 w-full z-50 bg-[#f7f9fc] dark:bg-slate-950 flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#3F8EF7] cursor-pointer">menu</span>
+<span class="text-xl font-extrabold bg-gradient-to-br from-[#3F8EF7] to-[#1173db] bg-clip-text text-transparent font-['Plus_Jakarta_Sans'] tracking-tight">Campus Nexus</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#717784]">notifications</span>
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center border border-outline-variant/20 overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional young student with a friendly expression, minimalist studio lighting, clean tech aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1I-QcMzQTC08tsoEuZyiMOgZIL2lYIGFNKr8LnsC1TIkaV4UEK-PN90m8A97j1WrOnLvSIBnybV5hnt1-i_-_3_Tdjqsbe1C4e772olXpM78ggBoI0ZHLWAzqTdSX-oBlwM8hJgVQ-p3JNlToml9nADseVTOiZ4pCJt0c3IyvDjgio52ne8W-mWbt1iRBMQb79OamExIGr8Kqv0tAACLzJVvHO4k-8PUyioGzgrWdPKyw6ylJWBotm74zTLePN8jS6sK_sevnEmg"/>
+</div>
+</div>
+</nav>
+<main class="pt-20 pb-24 px-4 md:px-8 max-w-7xl mx-auto">
+<!-- Tab Navigation -->
+<div class="flex items-center gap-8 mb-8 overflow-x-auto no-scrollbar">
+<div class="relative group cursor-pointer">
+<span class="text-xl font-bold text-on-surface whitespace-nowrap">Team Plaza</span>
+<div class="absolute -bottom-2 left-0 w-12 h-1 rounded-full bg-[#3F8EF7]"></div>
+</div>
+<div class="group cursor-pointer">
+<span class="text-xl font-semibold text-outline hover:text-on-surface transition-colors whitespace-nowrap">Talent Plaza</span>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="flex flex-wrap items-center gap-3 mb-8">
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest rounded-full text-sm font-medium text-on-surface-variant hover:bg-surface-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-sm">category</span>
+<span>竞赛类型</span>
+<span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest rounded-full text-sm font-medium text-on-surface-variant hover:bg-surface-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-sm">code</span>
+<span>技术栈</span>
+<span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest rounded-full text-sm font-medium text-on-surface-variant hover:bg-surface-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-sm">event</span>
+<span>截止日期</span>
+<span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+<div class="ml-auto flex items-center bg-surface-container-high rounded-xl px-4 py-2 focus-within:ring-2 ring-primary/20 transition-all">
+<span class="material-symbols-outlined text-outline mr-2 text-xl">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm text-on-surface w-48 lg:w-64" placeholder="搜索竞赛或项目..." type="text"/>
+</div>
+</div>
+<!-- Project Cards (Bento-inspired Grid) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Card 1: Featured High Impact -->
+<div class="lg:col-span-2 bg-surface-container-lowest rounded-xl p-6 flex flex-col md:flex-row gap-6 relative overflow-hidden group shadow-sm hover:shadow-md transition-shadow">
+<div class="absolute top-0 right-0 w-32 h-32 bg-[#3F8EF7]/5 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-500"></div>
+<div class="w-full md:w-1/3 aspect-video md:aspect-square rounded-lg bg-surface-container-high overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="Futuristic AI neural network visualization with bright blue energy strands, clean tech aesthetic, dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVxo0mYjBaJNufCX0FpPtomZDhnDtDnwQgpe4q8fET-hV1HusuJvAPlS8H-YBH5YT_xjsFPZ0hadYf_YILSRy8kcToMrMNU7_v1ceaMsshNiUwJQk0DaSacJVX-8CiV35QWOVZWiwTp0SGH84RDgVgznwvNsaC8j4IOLfpgchaP-wjwF98gb8ssyypB7oqK_BD0TG82eHNWrWNCT5h5fi-CzmtIjtje5YgSriD3uQhZWYK-stSoDiXW9oof-XevT3JgSSH5hU4gUs"/>
+<div class="absolute top-3 left-3 px-2 py-1 bg-secondary text-white text-[10px] font-bold rounded-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed animate-pulse"></span>
+                        RECRUITING
+                    </div>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="text-xs font-semibold text-primary px-2 py-0.5 bg-primary/10 rounded-sm">2024 AI Challenge</span>
+<span class="text-xs text-outline">5天后截止</span>
+</div>
+<h3 class="text-xl font-extrabold text-on-surface mb-3 tracking-tight">智能校园导览助手：基于LLM的多模态交互系统</h3>
+<p class="text-sm text-outline-variant mb-4 line-clamp-2">我们正在寻找一位对RAG架构有深厚理解的后端伙伴，以及一位能设计精美UI的UI/UX设计师。</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="px-3 py-1 bg-surface-container-high text-xs rounded-sm font-medium text-on-surface-variant">Python</span>
+<span class="px-3 py-1 bg-surface-container-high text-xs rounded-sm font-medium text-on-surface-variant">LangChain</span>
+<span class="px-3 py-1 bg-surface-container-high text-xs rounded-sm font-medium text-on-surface-variant">Next.js</span>
+</div>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between items-end mb-2">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-white bg-slate-200"></div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-slate-300"></div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-slate-400"></div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-surface-container-high flex items-center justify-center text-[10px] text-outline font-bold">+2</div>
+</div>
+<span class="text-xs font-bold text-on-surface">3/5 成员</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-[#3F8EF7] to-[#3ED6A9]" style="width: 60%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: Fintech -->
+<!-- Card 3: Green Tech -->
+<div class="bg-surface-container-lowest rounded-xl p-6 flex flex-col shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-primary text-3xl">eco</span>
+<span class="text-[10px] font-bold text-outline uppercase tracking-widest">2 Days</span>
+</div>
+<h3 class="text-lg font-bold text-on-surface mb-2 leading-tight">EcoCampus: 校园能效监测可视化面板</h3>
+<p class="text-xs text-outline-variant mb-6 flex-1">寻找数据分析师处理实时传感器数据。</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded-sm">PYTHON</span>
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded-sm">D3.JS</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold text-primary">2/4</span>
+<div class="w-24 h-1 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 50%"></div>
+</div>
+</div>
+<button class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+<!-- Card 4: Game Dev -->
+<!-- Card 5: Large Vertical Spotlight -->
+</div>
+</main>
+<!-- FAB for Create Team -->
+<div class="fixed bottom-24 right-6 z-50">
+<button class="w-14 h-14 rounded-full bg-gradient-to-br from-[#3F8EF7] to-[#1173db] shadow-xl flex items-center justify-center text-white active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+<!-- BottomNavBar Component -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0_-8px_24px_rgba(63,142,247,0.08)] border-t border-[#c1c6d5]/15 pt-2 pb-safe px-4 flex justify-around items-center">
+<div class="flex flex-col items-center justify-center text-[#717784] dark:text-slate-500 hover:text-[#3F8EF7] active:scale-90 transition-transform duration-150 cursor-pointer">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-['Plus_Jakarta_Sans'] font-medium uppercase tracking-wider mt-1">首页</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#3F8EF7] bg-[#f2f4f7] dark:bg-slate-800 rounded-xl px-3 py-1 active:scale-90 transition-transform duration-150 cursor-pointer">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="text-[10px] font-['Plus_Jakarta_Sans'] font-medium uppercase tracking-wider mt-1">广场</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#717784] dark:text-slate-500 hover:text-[#3F8EF7] active:scale-90 transition-transform duration-150 cursor-pointer">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-[10px] font-['Plus_Jakarta_Sans'] font-medium uppercase tracking-wider mt-1">消息</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#717784] dark:text-slate-500 hover:text-[#3F8EF7] active:scale-90 transition-transform duration-150 cursor-pointer">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-['Plus_Jakarta_Sans'] font-medium uppercase tracking-wider mt-1">我的</span>
+</div>
+</nav>
+</body></html>

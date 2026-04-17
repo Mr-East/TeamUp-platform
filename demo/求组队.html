@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Campus Nexus - 发布需求</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#a9c7ff",
+                        "on-secondary-fixed": "#002117",
+                        "tertiary-fixed": "#ffdcc2",
+                        "secondary": "#006c52",
+                        "on-primary": "#ffffff",
+                        "primary": "#005bb2",
+                        "outline-variant": "#c1c6d5",
+                        "tertiary-fixed-dim": "#ffb77b",
+                        "inverse-surface": "#2d3133",
+                        "error-container": "#ffdad6",
+                        "outline": "#717784",
+                        "secondary-fixed": "#6bfbcb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#00468b",
+                        "surface-tint": "#005db6",
+                        "secondary-container": "#6bfbcb",
+                        "error": "#ba1a1a",
+                        "inverse-on-surface": "#eff1f4",
+                        "on-primary-container": "#fefcff",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#49deb0",
+                        "inverse-primary": "#a9c7ff",
+                        "on-surface-variant": "#414753",
+                        "on-secondary-container": "#007257",
+                        "surface-container-high": "#e6e8eb",
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#b06000",
+                        "tertiary": "#8c4c00",
+                        "surface-bright": "#f7f9fc",
+                        "primary-container": "#1173db",
+                        "on-tertiary-fixed": "#2e1500",
+                        "background": "#f7f9fc",
+                        "surface-container-low": "#f2f4f7",
+                        "on-surface": "#191c1e",
+                        "surface-variant": "#e0e3e6",
+                        "surface-container": "#eceef1",
+                        "surface-container-highest": "#e0e3e6",
+                        "primary-fixed": "#d6e3ff",
+                        "on-tertiary-container": "#fffbff",
+                        "on-background": "#191c1e",
+                        "surface-dim": "#d8dadd",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#00513d",
+                        "on-primary-fixed": "#001b3d",
+                        "surface": "#f7f9fc",
+                        "on-tertiary-fixed-variant": "#6d3a00",
+                        "on-tertiary": "#ffffff",
+                        "vibrant-green": "#3ED6A9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-[#f2f4f7] dark:bg-[#2c2e31] flex items-center justify-between px-4 h-16">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-outline cursor-pointer active:scale-95 transition-transform" data-icon="arrow_back">arrow_back</span>
+<h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-lg text-on-surface">发布需求</h1>
+</div>
+<div class="w-10"></div> <!-- Balance -->
+</header>
+<main class="px-5 pt-6 max-w-md mx-auto space-y-8">
+<!-- Tab Switcher (Segmented Control) -->
+<div class="bg-surface-container-high p-1 rounded-xl flex items-center shadow-inner">
+<button class="flex-1 py-2.5 text-sm font-semibold text-outline transition-all rounded-lg">招队友</button>
+<button class="flex-1 py-2.5 text-sm font-bold text-on-primary bg-primary-container rounded-lg shadow-sm active:scale-[0.98] transition-all">求组队</button>
+</div>
+<!-- Form Section -->
+<div class="space-y-6">
+<!-- Field: Target Track -->
+<div class="space-y-2">
+<label class="text-on-surface-variant font-bold text-sm ml-1">意向赛道 / 领域</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-xl" data-icon="search">search</span>
+<input class="w-full pl-12 pr-4 py-4 bg-surface-container-lowest border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline/60 shadow-sm transition-all" placeholder="搜索并指定你想加入的比赛..." type="text"/>
+</div>
+</div>
+<!-- Field: Skill Tags -->
+<div class="space-y-3">
+<div class="flex justify-between items-end px-1">
+<label class="text-on-surface-variant font-bold text-sm">核心技能标签</label>
+<span class="text-[10px] text-outline font-medium uppercase tracking-wider">Most Wanted Skills</span>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="px-4 py-2 bg-secondary-container text-on-secondary-container rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm border border-secondary/10">
+                        UI/UX Design
+                        <span class="material-symbols-outlined text-[14px]" data-icon="close">close</span>
+</span>
+<span class="px-4 py-2 bg-secondary-container text-on-secondary-container rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm border border-secondary/10">
+                        React Native
+                        <span class="material-symbols-outlined text-[14px]" data-icon="close">close</span>
+</span>
+<span class="px-4 py-2 bg-secondary-container text-on-secondary-container rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm border border-secondary/10">
+                        Data Analysis
+                        <span class="material-symbols-outlined text-[14px]" data-icon="close">close</span>
+</span>
+<button class="px-4 py-2 bg-surface-container-high text-primary rounded-lg text-xs font-bold border border-dashed border-primary/30 flex items-center gap-1 hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-[14px]" data-icon="add">add</span>
+                        添加
+                    </button>
+</div>
+</div>
+<!-- Field: Bio / Request -->
+<div class="space-y-2">
+<div class="flex justify-between items-end px-1">
+<label class="text-on-surface-variant font-bold text-sm">个人简介 / 组队诉求</label>
+<span class="text-xs text-outline">0 / 500</span>
+</div>
+<textarea class="w-full p-4 bg-surface-container-lowest border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline/60 shadow-sm transition-all resize-none" placeholder="描述你的技术栈、获奖经历以及对理想团队的期望..." rows="5"></textarea>
+</div>
+</div>
+<!-- Preview Card Section -->
+<div class="space-y-4 pb-12">
+<h3 class="text-on-surface font-bold text-lg px-1 flex items-center gap-2">
+<span class="w-1.5 h-1.5 bg-secondary rounded-full animate-pulse"></span>
+                预览你的求组队名片
+            </h3>
+<!-- Bento-style Card -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_8px_24px_rgba(63,142,247,0.06)] border border-outline-variant/10 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+<div class="flex gap-4 relative z-10">
+<div class="relative">
+<img class="w-16 h-16 rounded-xl object-cover ring-4 ring-surface-container-low" data-alt="close-up portrait of a young professional woman with a confident smile in a modern bright office environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDznTah9mPj5IUYN9j8BubHjOOZA0SZe32hmp6RRc_-abxBZgO5GSeh5DUhQHVMDgJSItMLgD5BIYBEURmw1ZGP8dEYhNolyHA_1X0feeH4KL8GTfFvMN0FRR4xUEgOes4pGRJwgJ4S5nmVJctYW0icN_uk7P7be8d9aO3ozfEUzLnTH7MdjD8AXdMBXAmptX9owEzWIGH8sXMLBwnIaKBvU6jj9dMf51qTh3-Wpwy2VRNiilxeMLT1R_1u-HhfqOr96r4GnmNO_Uw"/>
+<div class="absolute -bottom-1 -right-1 w-5 h-5 bg-vibrant-green rounded-full border-2 border-white flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px] text-white font-bold" data-icon="bolt" data-weight="fill" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-lg text-on-surface leading-tight">张梦颖 <span class="text-xs font-normal text-outline ml-1">UI/UX Designer</span></h4>
+<p class="text-[10px] text-primary font-semibold uppercase tracking-widest mt-0.5">清华大学 · 交互设计</p>
+</div>
+<span class="px-2 py-1 bg-secondary/10 text-secondary text-[10px] font-bold rounded">寻找中</span>
+</div>
+</div>
+</div>
+<p class="text-on-surface-variant text-xs mt-4 leading-relaxed line-clamp-2 italic">
+                    “拥有3年大厂实习经验，擅长从0到1构建产品视觉体系，希望寻找具有强大后端支持的团队参加‘挑战杯’...”
+                </p>
+<div class="mt-4 pt-4 border-t border-surface-container-low flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center border-2 border-white">
+<span class="material-symbols-outlined text-[12px] text-primary" data-icon="palette">palette</span>
+</div>
+<div class="w-6 h-6 rounded-full bg-tertiary/10 flex items-center justify-center border-2 border-white">
+<span class="material-symbols-outlined text-[12px] text-tertiary" data-icon="code">code</span>
+</div>
+</div>
+<span class="text-[10px] text-outline font-medium">15分钟前更新于人才广场</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Main Action Button -->
+<div class="fixed bottom-24 left-0 right-0 px-6 z-40 pointer-events-none">
+<button class="w-full max-w-md mx-auto h-14 bg-gradient-to-r from-primary to-primary-container text-white rounded-full font-bold shadow-[0_12px_24px_rgba(0,91,178,0.2)] flex items-center justify-center gap-2 active:scale-95 transition-all pointer-events-auto">
+<span class="material-symbols-outlined" data-icon="send" data-weight="fill" style="font-variation-settings: 'FILL' 1;">send</span>
+            发布名片到人才广场
+        </button>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-3xl bg-white/80 dark:bg-[#1a1c1e]/80 backdrop-blur-md border-t border-[#c1c6d5]/15 shadow-[0_-8px_24px_rgba(63,142,247,0.08)] flex justify-around items-center px-6 py-3">
+<div class="flex flex-col items-center justify-center text-[#717784] p-2 hover:text-[#3F8EF7] transition-colors active:scale-90 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Inter'] text-[10px] font-medium mt-1">首页</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#717784] p-2 hover:text-[#3F8EF7] transition-colors active:scale-90 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="emoji_events">emoji_events</span>
+<span class="font-['Inter'] text-[10px] font-medium mt-1">竞赛</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#3F8EF7] font-bold bg-[#f2f4f7] dark:bg-[#2c2e31] rounded-2xl p-2 active:scale-90 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="add_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+<span class="font-['Inter'] text-[10px] font-medium mt-1">发布</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#717784] p-2 hover:text-[#3F8EF7] transition-colors active:scale-90 transition-transform cursor-pointer">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Inter'] text-[10px] font-medium mt-1">我的</span>
+</div>
+</nav>
+</body></html>
