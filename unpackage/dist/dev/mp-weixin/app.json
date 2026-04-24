@@ -1,5 +1,7 @@
 {
   "pages": [
+    "pages/login/login",
+    "pages/register/register",
     "pages/index/index",
     "pages/square/square",
     "pages/recruitment-detail/recruitment-detail",
@@ -9,7 +11,10 @@
     "pages/chat/chat",
     "pages/profile/edit-profile",
     "pages/publish/recruit-teammate",
-    "pages/publish/seek-team"
+    "pages/publish/seek-team",
+    "pages/invites/invites",
+    "pages/profile/my-posts",
+    "pages/personInfo/personInfo"
   ],
   "window": {
     "navigationBarTextStyle": "black",

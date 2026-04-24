@@ -109,13 +109,36 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
 
 const showSuccess = ref(false);
 
 const formData = reactive({
   targetTrack: '',
-  skills: ['UI/UX Design', 'React Native', 'Data Analysis'],
-  bio: '拥有3年大厂实习经验，擅长从0到1构建产品视觉体系，希望寻找具有强大后端支持的团队参加挑战杯...'
+  skills: [],
+  bio: ''
+});
+
+// 页面加载时检查是否为编辑模式
+onLoad((options) => {
+  console.log('页面加载，接收到的参数：', options);
+  if (options.edit === 'true' && options.postData) {
+    try {
+      console.log('开始解析帖子数据...');
+      console.log('postData原始值：', options.postData);
+      const decodedData = decodeURIComponent(options.postData);
+      console.log('解码后的数据：', decodedData);
+      const postData = JSON.parse(decodedData);
+      console.log('解析后的数据：', postData);
+      // 回显帖子信息
+      formData.targetTrack = postData.targetTrack || postData.title || '';
+      formData.skills = postData.skills || [];
+      formData.bio = postData.bio || '';
+      console.log('编辑模式加载成功，表单数据：', formData);
+    } catch (e) {
+      console.error('解析帖子数据失败', e);
+    }
+  }
 });
 
 const userInfo = {
@@ -143,13 +166,41 @@ const showSkillPicker = () => {
   console.log('选择技能标签');
 };
 
-const submitForm = () => {
-  console.log('提交表单', formData);
-  showSuccess.value = true;
-  setTimeout(() => {
-    showSuccess.value = false;
-    uni.navigateBack();
-  }, 1500);
+const submitForm = async () => {
+  try {
+    const token = uni.getStorageSync('token');
+    if (!token) {
+      uni.showToast({ title: '请先登录', icon: 'none' });
+      return;
+    }
+
+    const response = await uni.request({
+      url: 'http://localhost:3000/api/talent-profiles',
+      method: 'POST',
+      header: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      data: {
+        targetTrack: formData.targetTrack,
+        skills: formData.skills,
+        bio: formData.bio
+      }
+    });
+
+    if (response.data && response.data.success) {
+      showSuccess.value = true;
+      setTimeout(() => {
+        showSuccess.value = false;
+        uni.navigateBack();
+      }, 1500);
+    } else {
+      uni.showToast({ title: response.data?.message || '发布失败', icon: 'none' });
+    }
+  } catch (error) {
+    console.error('发布失败', error);
+    uni.showToast({ title: '发布失败，请重试', icon: 'none' });
+  }
 };
 </script>
 

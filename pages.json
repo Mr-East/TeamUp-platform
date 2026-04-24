@@ -1,6 +1,20 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
 		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"navigationBarHidden": true
+			}
+		},
+		{
+			"path": "pages/register/register",
+			"style": {
+				"navigationBarTitleText": "注册",
+				"navigationBarHidden": true
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "校园竞赛组队"
@@ -58,6 +72,24 @@
 			"path": "pages/publish/seek-team",
 			"style": {
 				"navigationBarTitleText": "发布需求"
+			}
+		},
+		{
+			"path": "pages/invites/invites",
+			"style": {
+				"navigationBarTitleText": "通知与申请"
+			}
+		},
+		{
+			"path": "pages/profile/my-posts",
+			"style": {
+				"navigationBarTitleText": "我的发布"
+			}
+		},
+		{
+			"path": "pages/personInfo/personInfo",
+			"style": {
+				"navigationBarTitleText": "个人主页"
 			}
 		}
 	],

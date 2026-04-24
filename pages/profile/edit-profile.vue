@@ -95,24 +95,88 @@ import { ref, onMounted } from 'vue';
 
 // 表单数据
 const profileForm = ref({
-  name: '张三',
-  avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20male&image_size=square',
-  college: '计算机学院',
-  major: 'Computer Science',
-  skills: ['Vue', 'JavaScript', 'Java', 'Python'],
-  bio: 'Finalist at the 2023 Global Hackathon. Passionate about building scalable cloud solutions and intuitive user interfaces. Looking for a hardware enthusiast for the upcoming Robotics Challenge.'
+  name: '默认用户',
+  avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square',
+  college: '默认学院',
+  major: '默认专业',
+  skills: [],
+  bio: ''
 });
 
 const showSuccess = ref(false);
+const loading = ref(true);
 
 // 生命周期
-onMounted(() => {
-  // 可以从路由参数中获取用户信息
-  // const routeParams = router.currentRoute.value.params;
-  // if (routeParams.userInfo) {
-  //   profileForm.value = JSON.parse(routeParams.userInfo);
-  // }
+onMounted(async () => {
+  const token = uni.getStorageSync('token');
+  if (!token) {
+    uni.navigateTo({
+      url: '/pages/login/login'
+    });
+    return;
+  }
+  
+  // 获取当前用户信息
+  await fetchUserInfo();
 });
+
+// 获取用户信息
+const fetchUserInfo = async () => {
+  try {
+    loading.value = true;
+    const token = uni.getStorageSync('token');
+    
+    const response = await uni.request({
+      url: 'http://localhost:3000/api/users/me',
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (response.data && response.data.success) {
+      profileForm.value = {
+        name: response.data.data.name || '张三',
+        avatar: response.data.data.avatar || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20male&image_size=square',
+        college: response.data.data.college || '计算机学院',
+        major: response.data.data.major || 'Computer Science',
+        skills: response.data.data.skills || ['Vue', 'JavaScript', 'Java', 'Python'],
+        bio: response.data.data.bio || 'Finalist at the 2023 Global Hackathon. Passionate about building scalable cloud solutions and intuitive user interfaces. Looking for a hardware enthusiast for the upcoming Robotics Challenge.'
+      };
+    } else {
+      uni.showToast({
+        title: '获取用户信息失败',
+        icon: 'none'
+      });
+      // 使用默认数据
+      profileForm.value = {
+        name: '张三',
+        avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20male&image_size=square',
+        college: '计算机学院',
+        major: 'Computer Science',
+        skills: ['Vue', 'JavaScript', 'Java', 'Python'],
+        bio: 'Finalist at the 2023 Global Hackathon. Passionate about building scalable cloud solutions and intuitive user interfaces. Looking for a hardware enthusiast for the upcoming Robotics Challenge.'
+      };
+    }
+  } catch (error) {
+    console.error('获取用户信息错误:', error);
+    uni.showToast({
+      title: '网络错误，请稍后重试',
+      icon: 'none'
+    });
+    // 使用默认数据
+    profileForm.value = {
+      name: '默认用户',
+      avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square',
+      college: '默认学院',
+      major: '默认专业',
+      skills: [],
+      bio: ''
+    };
+  } finally {
+    loading.value = false;
+  }
+};
 
 // 返回上一页
 const goBack = () => {
@@ -120,19 +184,150 @@ const goBack = () => {
 };
 
 // 保存个人资料
-const saveProfile = () => {
-  console.log('保存个人资料', profileForm.value);
-  // 模拟保存成功
-  showSuccess.value = true;
-  setTimeout(() => {
-    showSuccess.value = false;
-    uni.navigateBack();
-  }, 1500);
+const saveProfile = async () => {
+  try {
+    const token = uni.getStorageSync('token');
+    const userId = uni.getStorageSync('userInfo')?.id;
+    
+    if (!token || !userId) {
+      uni.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    uni.showLoading({ title: '保存中...' });
+    
+    const response = await uni.request({
+      url: `http://localhost:3000/api/users/${userId}`,
+      method: 'PUT',
+      header: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      data: {
+        name: profileForm.value.name,
+        avatar: profileForm.value.avatar,
+        college: profileForm.value.college,
+        major: profileForm.value.major,
+        skills: profileForm.value.skills,
+        bio: profileForm.value.bio
+      }
+    });
+    
+    if (response.data && response.data.success) {
+      // 更新本地存储中的用户信息
+      uni.setStorageSync('userInfo', response.data.data);
+      showSuccess.value = true;
+      setTimeout(() => {
+        showSuccess.value = false;
+        uni.navigateBack();
+      }, 1500);
+    } else {
+      uni.showToast({
+        title: '保存失败，请稍后重试',
+        icon: 'none'
+      });
+    }
+  } catch (error) {
+    console.error('保存个人资料错误:', error);
+    uni.showToast({
+      title: '网络错误，请稍后重试',
+      icon: 'none'
+    });
+  } finally {
+    uni.hideLoading();
+  }
 };
 
 // 更换头像
 const changeAvatar = () => {
-  console.log('更换头像');
+  uni.chooseImage({
+    count: 1,
+    sizeType: ['original', 'compressed'],
+    sourceType: ['album', 'camera'],
+    success: function(res) {
+      const tempFilePaths = res.tempFilePaths;
+      uploadAvatar(tempFilePaths[0]);
+    }
+  });
+};
+
+// 上传头像
+const uploadAvatar = async (tempFilePath) => {
+  try {
+    const token = uni.getStorageSync('token');
+    const userId = uni.getStorageSync('userInfo')?.id;
+    
+    if (!token || !userId) {
+      uni.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    uni.showLoading({ title: '上传中...' });
+    
+    const uploadTask = uni.uploadFile({
+      url: 'http://localhost:3000/api/users/avatar',
+      filePath: tempFilePath,
+      name: 'avatar',
+      header: {
+        'Authorization': `Bearer ${token}`
+      },
+      formData: {
+        'userId': userId
+      },
+      success: async function(uploadRes) {
+        try {
+          const response = JSON.parse(uploadRes.data);
+          if (response && response.success) {
+            // 更新本地头像
+            profileForm.value.avatar = response.data.avatar;
+            // 更新本地存储中的用户信息
+            const userInfo = uni.getStorageSync('userInfo');
+            userInfo.avatar = response.data.avatar;
+            uni.setStorageSync('userInfo', userInfo);
+            
+            uni.showToast({
+              title: '头像上传成功',
+              icon: 'success'
+            });
+          } else {
+            uni.showToast({
+              title: '上传失败，请稍后重试',
+              icon: 'none'
+            });
+          }
+        } catch (error) {
+          console.error('解析上传响应错误:', error);
+          uni.showToast({
+            title: '上传失败，请稍后重试',
+            icon: 'none'
+          });
+        }
+      },
+      fail: function(error) {
+        console.error('上传头像错误:', error);
+        uni.showToast({
+          title: '上传失败，请稍后重试',
+          icon: 'none'
+        });
+      },
+      complete: function() {
+        uni.hideLoading();
+      }
+    });
+  } catch (error) {
+    console.error('上传头像错误:', error);
+    uni.hideLoading();
+    uni.showToast({
+      title: '网络错误，请稍后重试',
+      icon: 'none'
+    });
+  }
 };
 
 // 选择学院
@@ -141,13 +336,82 @@ const selectSchool = () => {
 };
 
 // 添加技能标签
-const addSkillTag = () => {
-  console.log('添加技能标签');
+const addSkillTag = async () => {
+  uni.showModal({
+    title: '添加技能',
+    editable: true,
+    placeholderText: '请输入技能名称',
+    success: async (res) => {
+      if (res.confirm && res.content.trim() !== '') {
+        const newSkill = res.content.trim();
+        if (!profileForm.value.skills.includes(newSkill)) {
+          profileForm.value.skills.push(newSkill);
+          await updateSkillsToServer(); // 调接口同步
+        } else {
+          uni.showToast({
+            title: '技能已存在',
+            icon: 'none'
+          });
+        }
+      }
+    }
+  });
 };
 
 // 移除技能
-const removeSkill = (index) => {
+const removeSkill = async (index) => {
   profileForm.value.skills.splice(index, 1);
+  await updateSkillsToServer();
+};
+
+// 更新技能到服务器
+const updateSkillsToServer = async () => {
+  try {
+    const token = uni.getStorageSync('token');
+    const userId = uni.getStorageSync('userInfo')?.id;
+    
+    if (!token || !userId) {
+      uni.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    uni.showLoading({ title: '更新中...' });
+    
+    const response = await uni.request({
+      url: `http://localhost:3000/api/users/${userId}`,
+      method: 'PUT',
+      header: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      data: { skills: profileForm.value.skills }
+    });
+    
+    if (response.data && response.data.success) {
+      // 更新本地存储中的用户信息
+      uni.setStorageSync('userInfo', response.data.data);
+      uni.showToast({ 
+        title: '技能已更新', 
+        icon: 'success' 
+      });
+    } else {
+      uni.showToast({
+        title: '更新失败，请稍后重试',
+        icon: 'none'
+      });
+    }
+  } catch (error) {
+    console.error('更新技能错误:', error);
+    uni.showToast({
+      title: '网络错误，请稍后重试',
+      icon: 'none'
+    });
+  } finally {
+    uni.hideLoading();
+  }
 };
 
 // 查找技能
@@ -387,14 +651,14 @@ const findSkills = () => {
 .skill-tag {
   display: flex;
   align-items: center;
-  background-color: #6bfbcb;
-  color: #007257;
+  background-color: #4A90E2;
+  color: white;
   padding: 6px 12px;
   border-radius: 8px;
   margin-right: 12px;
   margin-bottom: 12px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 114, 87, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .skill-text {

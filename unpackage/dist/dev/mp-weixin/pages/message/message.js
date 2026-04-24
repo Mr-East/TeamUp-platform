@@ -3,83 +3,194 @@ const common_vendor = require("../../common/vendor.js");
 const _sfc_main = {
   __name: "message",
   setup(__props) {
-    const router = common_vendor.useRouter();
     const activeTab = common_vendor.ref("private");
-    const privateMessages = common_vendor.ref([
-      {
-        id: 1,
-        name: "李明华 (AI Lab)",
-        avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuB0KAcwGbxp7qLD7ncmDLQhVaSzAmlfwYwprJh2mk4dotcs7fUNcbJSKgxsuJbHh17SxPsZdXprCVjg7xowqdR9m_aKtV_5B5ld9-MScfU9gTkAwJ2qz6eIjWPhKNKVxBxxnMTKu3pB8OSosYMrrhCiZnl_thkEaa-lPB7KCYkBabs7_hWMOc7mMi0wyQpL5uH6EKEACIlSjw2V_3Y1s1ob-kXwexpLuKPzzLHv1CB7DIyzOuwfZOC4QiafYcpuiAI1UpNF4Cr9RVs",
-        preview: "关于这次的数学建模比赛，我想请教一下关于算法优化的部分...",
-        time: "14:20",
-        unread: 3
-      },
-      {
-        id: 2,
-        name: "Sarah Zhang",
-        avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuCgn616qrqIQu_QRYcw2uzUWYBJcR-XheCAZGTEISq5T3PtDR6daDfeEbbqWoI2Vr_AqKdnXYTm5vMFx9P-hHD-Vc_0fElkm1gyhFfGmi8_ctvcfpLUy-EJqEQjBA-MgzaVO4RpD0zq1VqPK0IEzIQhZtBf7ksTsV9NzfIVqGqwigYNDh-nQlC1TW_QrOjecUi0p0O8qXhti1BvbmvLbVSzCCYpR8zVr74RKsg4F6LDAlenMZHCa5ISbEqCyCjf_RA-xUH336JAS4k",
-        preview: "Great progress on the UI design! Let's sync tomorrow at the hub.",
-        time: "11:05"
-      },
-      {
-        id: 3,
-        name: "陈教授",
-        avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuBEca5vDCgdHjuz7DJGYhyzDAR7r9ovibbthmVmnhGglmpEudEZaFB4j2vRq8SUUItB2uL1YmRm4HYuyVSq9b-2pzfp4R07lbyqDzAe6bjHroqSBy1Tywo_Tv_Fceiv-ZV218v3UO5KHb-zKq56cKVz07PoqVKsk2-4drAyLfO44xbMQwYwWsqtwo30TcYADvkfj0HCjhGKEHmHakbJZCNGtb5uGkjm8MkcTjI9GP1ufQd9RuB0uQPffHtUmymsTBSBdpyRohB_kfw",
-        preview: "你的论文初稿已经看过了，有一些细节需要我们当面讨论一下。",
-        time: "昨天"
-      },
-      {
-        id: 4,
-        name: "创新大赛交流群",
-        avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuD8mFUYNFqLwJPauGgBN1tp1rWcJcyNKcKPlK20hQ2PFv_grSeC1ag_Q_lf1OgvLV1-SflOgmNg5GvDkNphgvNUpFBOQhAPIFome91pGcPzeBhJ0oni4xviBzcVEn_xr5YWDsXNsiy9fg8Zqk4rMBkkuyG5z4XbZZv_y09BKSuxvYISp1UegrClTF7SF1Bjfk5sk2OAwLV6-Ot7f-_mhGqjl26CRoxM5mQXuS4_6NLzw1GnZAHudWj96Pa6rsq9H8wltA7UwHWqhho",
-        preview: '<span class="text-primary font-semibold">王小二:</span> 刚才发布的通知大家都看到了吗？',
-        time: "周三"
+    const privateMessages = common_vendor.ref([]);
+    const systemNotifications = common_vendor.ref([]);
+    const loading = common_vendor.ref({
+      chats: false,
+      notifications: false
+    });
+    const error = common_vendor.ref({
+      chats: "",
+      notifications: ""
+    });
+    common_vendor.onLoad(async () => {
+      const token = common_vendor.index.getStorageSync("token");
+      if (!token) {
+        common_vendor.index.navigateTo({
+          url: "/pages/login/login"
+        });
+        return;
       }
-    ]);
-    const systemNotifications = common_vendor.ref([
-      {
-        id: 1,
-        title: "竞赛提醒",
-        content: "全国大学生互联网+创新创业大赛报名截止时间为2026年5月10日，请尽快完成报名",
-        time: "2026-04-17 09:00",
-        type: "reminder"
-      },
-      {
-        id: 2,
-        title: "审核结果",
-        content: "您的身份认证已通过，现在可以发布招募信息了",
-        time: "2026-04-16 14:30",
-        type: "approval"
-      },
-      {
-        id: 3,
-        title: "竞赛提醒",
-        content: "全国大学生数学建模竞赛开始报名了，截止时间为2026年6月30日",
-        time: "2026-04-15 10:00",
-        type: "reminder"
+      await fetchPrivateMessages();
+      await fetchSystemNotifications();
+    });
+    common_vendor.onShow(async () => {
+      const token = common_vendor.index.getStorageSync("token");
+      if (token) {
+        await fetchPrivateMessages();
+        await fetchSystemNotifications();
       }
-    ]);
-    const goToChat = (id) => {
-      router.push({ path: "/pages/chat/chat", query: { id } });
+    });
+    common_vendor.watch(activeTab, async (newTab) => {
+      if (newTab === "private" && privateMessages.value.length === 0) {
+        await fetchPrivateMessages();
+      } else if (newTab === "system" && systemNotifications.value.length === 0) {
+        await fetchSystemNotifications();
+      }
+    });
+    const fetchPrivateMessages = async () => {
+      try {
+        loading.value.chats = true;
+        error.value.chats = "";
+        const token = common_vendor.index.getStorageSync("token");
+        const response = await common_vendor.index.request({
+          url: "http://localhost:3000/api/messages/chats",
+          method: "GET",
+          header: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        if (response.data && response.data.success) {
+          const chatsData = response.data.data || response.data || [];
+          privateMessages.value = chatsData.map((chat) => {
+            const otherUser = chat.otherUser || {};
+            return {
+              id: chat.id,
+              name: otherUser.name || "未知用户",
+              avatar: otherUser.avatar || "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square",
+              preview: chat.lastMessage || "暂无消息",
+              time: formatTime(chat.updated_at),
+              unread: chat.unreadCount || 0,
+              otherUserId: otherUser.id
+            };
+          });
+        } else {
+          error.value.chats = "获取私信列表失败";
+          privateMessages.value = [];
+        }
+      } catch (err) {
+        common_vendor.index.__f__("error", "at pages/message/message.vue:192", "获取私信列表错误:", err);
+        error.value.chats = "网络错误，请稍后重试";
+        privateMessages.value = [];
+      } finally {
+        loading.value.chats = false;
+      }
+    };
+    const fetchSystemNotifications = async () => {
+      try {
+        loading.value.notifications = true;
+        error.value.notifications = "";
+        const token = common_vendor.index.getStorageSync("token");
+        const response = await common_vendor.index.request({
+          url: "http://localhost:3000/api/notifications",
+          method: "GET",
+          header: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        if (response.data && response.data.success) {
+          systemNotifications.value = response.data.data.map((notification) => ({
+            id: notification.id,
+            title: notification.title || "系统通知",
+            content: notification.content || "",
+            time: formatTime(notification.created_at),
+            type: notification.type || "reminder"
+          }));
+        } else {
+          error.value.notifications = "获取系统通知失败";
+          systemNotifications.value = [];
+        }
+      } catch (err) {
+        common_vendor.index.__f__("error", "at pages/message/message.vue:230", "获取系统通知错误:", err);
+        error.value.notifications = "网络错误，请稍后重试";
+        systemNotifications.value = [];
+      } finally {
+        loading.value.notifications = false;
+      }
+    };
+    const formatTime = (timeString) => {
+      if (!timeString)
+        return "";
+      const date = new Date(timeString);
+      const now = /* @__PURE__ */ new Date();
+      const diffTime = now - date;
+      const diffDays = Math.floor(diffTime / (1e3 * 60 * 60 * 24));
+      if (diffDays === 0) {
+        return date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+      } else if (diffDays === 1) {
+        return "昨天";
+      } else if (diffDays < 7) {
+        const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+        return weekdays[date.getDay()];
+      } else {
+        return date.toLocaleDateString("zh-CN");
+      }
+    };
+    const goToChat = (chatId, otherUserId, name, avatar) => {
+      const currentUser = common_vendor.index.getStorageSync("userInfo");
+      const currentUserId = currentUser == null ? void 0 : currentUser.id;
+      if (otherUserId === currentUserId) {
+        common_vendor.index.showToast({
+          title: "不能与自己聊天",
+          icon: "none"
+        });
+        return;
+      }
+      common_vendor.index.navigateTo({
+        url: `/pages/chat/chat?chatId=${chatId}&otherUserId=${otherUserId}&name=${encodeURIComponent(name)}&avatar=${encodeURIComponent(avatar || "")}`
+      });
     };
     const goToInvites = () => {
-      common_vendor.index.__f__("log", "at pages/message/message.vue:156", "点击组队申请");
+      common_vendor.index.navigateTo({
+        url: "/pages/invites/invites"
+      });
     };
-    const markAsRead = () => {
-      common_vendor.index.__f__("log", "at pages/message/message.vue:161", "全部标为已读");
+    const markAsRead = async () => {
+      try {
+        const token = common_vendor.index.getStorageSync("token");
+        const response = await common_vendor.index.request({
+          url: "http://localhost:3000/api/notifications/read_all",
+          method: "PUT",
+          header: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        if (response.data && response.data.success) {
+          common_vendor.index.showToast({
+            title: "已全部标记为已读",
+            icon: "success"
+          });
+          await fetchSystemNotifications();
+        } else {
+          common_vendor.index.showToast({
+            title: "标记失败，请稍后重试",
+            icon: "none"
+          });
+        }
+      } catch (err) {
+        common_vendor.index.__f__("error", "at pages/message/message.vue:315", "标记通知已读错误:", err);
+        common_vendor.index.showToast({
+          title: "网络错误，请稍后重试",
+          icon: "none"
+        });
+      }
     };
     return (_ctx, _cache) => {
       return common_vendor.e({
-        a: common_vendor.o(goToInvites),
+        a: common_vendor.o(goToInvites, "64"),
         b: activeTab.value === "private" ? 1 : "",
-        c: common_vendor.o(($event) => activeTab.value = "private"),
+        c: common_vendor.o(($event) => activeTab.value = "private", "af"),
         d: activeTab.value === "system" ? 1 : "",
-        e: common_vendor.o(($event) => activeTab.value = "system"),
+        e: common_vendor.o(($event) => activeTab.value = "system", "41"),
         f: activeTab.value === "private"
       }, activeTab.value === "private" ? common_vendor.e({
-        g: privateMessages.value.length === 0
-      }, privateMessages.value.length === 0 ? {} : {
-        h: common_vendor.f(privateMessages.value, (message, index, i0) => {
+        g: loading.value.chats
+      }, loading.value.chats ? {} : error.value.chats ? {
+        i: common_vendor.t(error.value.chats),
+        j: common_vendor.o(fetchPrivateMessages, "52")
+      } : privateMessages.value.length === 0 ? {} : {
+        l: common_vendor.f(privateMessages.value, (message, index, i0) => {
           return common_vendor.e({
             a: message.avatar,
             b: common_vendor.t(message.name),
@@ -90,14 +201,20 @@ const _sfc_main = {
             f: common_vendor.t(message.unread)
           } : {}, {
             g: index,
-            h: common_vendor.o(($event) => goToChat(message.id), index)
+            h: common_vendor.o(($event) => goToChat(message.id, message.otherUserId, message.name, message.avatar), index)
           });
         })
+      }, {
+        h: error.value.chats,
+        k: privateMessages.value.length === 0
       }) : common_vendor.e({
-        i: common_vendor.o(markAsRead),
-        j: systemNotifications.value.length === 0
-      }, systemNotifications.value.length === 0 ? {} : {
-        k: common_vendor.f(systemNotifications.value, (notification, index, i0) => {
+        m: common_vendor.o(markAsRead, "e3"),
+        n: loading.value.notifications
+      }, loading.value.notifications ? {} : error.value.notifications ? {
+        p: common_vendor.t(error.value.notifications),
+        q: common_vendor.o(fetchSystemNotifications, "37")
+      } : systemNotifications.value.length === 0 ? {} : {
+        s: common_vendor.f(systemNotifications.value, (notification, index, i0) => {
           return common_vendor.e({
             a: notification.type === "reminder"
           }, notification.type === "reminder" ? {} : notification.type === "approval" ? {} : {}, {
@@ -108,6 +225,9 @@ const _sfc_main = {
             f: index
           });
         })
+      }, {
+        o: error.value.notifications,
+        r: systemNotifications.value.length === 0
       }));
     };
   }

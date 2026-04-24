@@ -3,61 +3,187 @@ const common_vendor = require("../../common/vendor.js");
 const _sfc_main = {
   __name: "chat",
   setup(__props) {
-    const route = common_vendor.useRoute();
-    const chatId = route.query.id;
+    const chatId = common_vendor.ref("");
+    const chatName = common_vendor.ref("");
+    const chatAvatar = common_vendor.ref("");
+    const isOnline = common_vendor.ref(false);
+    const otherUserId = common_vendor.ref(null);
     const myInfo = common_vendor.ref({
-      name: "张三",
-      avatar: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20male&image_size=square"
+      id: null,
+      name: "我",
+      avatar: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square"
     });
-    const messages = common_vendor.ref([
-      {
-        id: 1,
-        content: "你好，我对你们的项目很感兴趣",
-        time: "10:30",
-        isMine: false,
-        avatar: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20female&image_size=square"
-      },
-      {
-        id: 2,
-        content: "你好，很高兴收到你的消息！请问你对我们的项目有什么问题吗？",
-        time: "10:31",
-        isMine: true,
-        avatar: myInfo.value.avatar
-      },
-      {
-        id: 3,
-        content: "我看到你们在招募前端开发，我有Vue开发经验，想了解一下具体的项目情况",
-        time: "10:32",
-        isMine: false,
-        avatar: "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20female&image_size=square"
-      },
-      {
-        id: 4,
-        content: "我们的项目是一个智能校园服务平台，主要功能包括校园导航、活动报名、失物招领等。我们需要前端开发人员负责页面开发和交互实现。",
-        time: "10:33",
-        isMine: true,
-        avatar: myInfo.value.avatar
-      }
-    ]);
+    const messages = common_vendor.ref([]);
     const inputText = common_vendor.ref("");
-    const sendMessage = () => {
-      if (inputText.value.trim()) {
-        messages.value.push({
-          id: messages.value.length + 1,
-          content: inputText.value,
-          time: (/* @__PURE__ */ new Date()).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
-          isMine: true,
-          avatar: myInfo.value.avatar
+    const loading = common_vendor.ref(false);
+    const fetchChatMessages = async () => {
+      var _a, _b, _c, _d;
+      try {
+        loading.value = true;
+        const token = common_vendor.index.getStorageSync("token");
+        const userInfo = common_vendor.index.getStorageSync("userInfo");
+        if (userInfo) {
+          myInfo.value.id = userInfo.id;
+          myInfo.value.name = userInfo.name || "我";
+          myInfo.value.avatar = userInfo.avatar || myInfo.value.avatar;
+        }
+        if (chatId.value) {
+          const response = await common_vendor.index.request({
+            url: `http://localhost:3000/api/messages/chat/${chatId.value}`,
+            method: "GET",
+            header: {
+              "Authorization": `Bearer ${token}`
+            }
+          });
+          if (response.data && response.data.success) {
+            const msgs = response.data.data || [];
+            messages.value = msgs.map((msg) => {
+              var _a2;
+              return {
+                id: msg.id,
+                content: msg.content,
+                time: formatTime(msg.created_at),
+                isMine: msg.senderId === myInfo.value.id,
+                avatar: msg.senderId === myInfo.value.id ? myInfo.value.avatar || myInfo.value.avatar : ((_a2 = msg.sender) == null ? void 0 : _a2.avatar) || chatAvatar.value || myInfo.value.avatar,
+                senderId: msg.senderId,
+                receiverId: msg.receiverId
+              };
+            });
+            if (msgs.length > 0) {
+              const lastMsg = msgs[msgs.length - 1];
+              if (lastMsg.senderId === myInfo.value.id) {
+                chatAvatar.value = ((_a = lastMsg.receiver) == null ? void 0 : _a.avatar) || chatAvatar.value;
+                chatName.value = ((_b = lastMsg.receiver) == null ? void 0 : _b.name) || chatName.value;
+                otherUserId.value = lastMsg.receiverId;
+              } else {
+                chatAvatar.value = ((_c = lastMsg.sender) == null ? void 0 : _c.avatar) || chatAvatar.value;
+                chatName.value = ((_d = lastMsg.sender) == null ? void 0 : _d.name) || chatName.value;
+                otherUserId.value = lastMsg.senderId;
+              }
+            }
+          } else {
+            common_vendor.index.showToast({
+              title: "获取消息失败",
+              icon: "none"
+            });
+          }
+        }
+      } catch (err) {
+        common_vendor.index.__f__("error", "at pages/chat/chat.vue:123", "获取聊天消息错误:", err);
+        common_vendor.index.showToast({
+          title: "网络错误",
+          icon: "none"
         });
-        inputText.value = "";
+      } finally {
+        loading.value = false;
       }
     };
-    common_vendor.onMounted(() => {
-      common_vendor.index.__f__("log", "at pages/chat/chat.vue:90", "获取聊天记录", chatId);
+    const sendMessage = async () => {
+      if (inputText.value.trim() && otherUserId.value) {
+        try {
+          const token = common_vendor.index.getStorageSync("token");
+          const response = await common_vendor.index.request({
+            url: "http://localhost:3000/api/messages/send",
+            method: "POST",
+            header: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            },
+            data: {
+              receiverId: otherUserId.value,
+              content: inputText.value.trim()
+            }
+          });
+          if (response.data && response.data.success) {
+            const newMsg = response.data.data;
+            messages.value.push({
+              id: newMsg.id,
+              content: newMsg.content,
+              time: formatTime(newMsg.created_at),
+              isMine: true,
+              avatar: myInfo.value.avatar,
+              senderId: newMsg.senderId,
+              receiverId: newMsg.receiverId
+            });
+            if (newMsg.chatId && !chatId.value) {
+              chatId.value = newMsg.chatId;
+            }
+            inputText.value = "";
+          } else {
+            common_vendor.index.showToast({
+              title: "发送失败",
+              icon: "none"
+            });
+          }
+        } catch (err) {
+          common_vendor.index.__f__("error", "at pages/chat/chat.vue:176", "发送消息错误:", err);
+          common_vendor.index.showToast({
+            title: "网络错误",
+            icon: "none"
+          });
+        }
+      } else if (!otherUserId.value) {
+        common_vendor.index.showToast({
+          title: "无法发送消息",
+          icon: "none"
+        });
+      }
+    };
+    const formatTime = (timeString) => {
+      if (!timeString)
+        return "";
+      const date = new Date(timeString);
+      const now = /* @__PURE__ */ new Date();
+      const diffTime = now - date;
+      const diffDays = Math.floor(diffTime / (1e3 * 60 * 60 * 24));
+      if (diffDays === 0) {
+        return date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+      } else if (diffDays === 1) {
+        return "昨天";
+      } else if (diffDays < 7) {
+        const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+        return weekdays[date.getDay()];
+      } else {
+        return date.toLocaleDateString("zh-CN");
+      }
+    };
+    const goBack = () => {
+      common_vendor.index.navigateBack();
+    };
+    common_vendor.onLoad(async (options) => {
+      const token = common_vendor.index.getStorageSync("token");
+      if (!token) {
+        common_vendor.index.navigateTo({
+          url: "/pages/login/login"
+        });
+        return;
+      }
+      if (options.chatId) {
+        chatId.value = options.chatId;
+      }
+      if (options.name) {
+        chatName.value = options.name;
+      }
+      if (options.avatar) {
+        chatAvatar.value = options.avatar;
+      }
+      if (options.otherUserId) {
+        otherUserId.value = parseInt(options.otherUserId);
+      }
+      await fetchChatMessages();
+    });
+    common_vendor.onShow(async () => {
+      if (chatId.value) {
+        await fetchChatMessages();
+      }
     });
     return (_ctx, _cache) => {
-      return {
-        a: common_vendor.f(messages.value, (message, index, i0) => {
+      return common_vendor.e({
+        a: common_vendor.t(chatName.value),
+        b: isOnline.value
+      }, isOnline.value ? {} : {}, {
+        c: common_vendor.o(goBack, "ff"),
+        d: common_vendor.f(messages.value, (message, index, i0) => {
           return common_vendor.e({
             a: !message.isMine
           }, !message.isMine ? {
@@ -68,16 +194,17 @@ const _sfc_main = {
             e: message.isMine ? 1 : "",
             f: message.isMine
           }, message.isMine ? {
-            g: myInfo.value.avatar
+            g: message.avatar
           } : {}, {
             h: index,
             i: message.isMine ? 1 : ""
           });
         }),
-        b: inputText.value,
-        c: common_vendor.o(($event) => inputText.value = $event.detail.value),
-        d: common_vendor.o(sendMessage)
-      };
+        e: common_vendor.o(sendMessage, "84"),
+        f: inputText.value,
+        g: common_vendor.o(($event) => inputText.value = $event.detail.value, "31"),
+        h: common_vendor.o(sendMessage, "77")
+      });
     };
   }
 };

@@ -40,20 +40,33 @@
   font-weight: bold;
   margin-bottom: 15px;
 }
-.competition-cards.data-v-1cf27b2a {
+.competition-scroll.data-v-1cf27b2a {
+  width: 100%;
+  margin-bottom: 20px;
+}
+.competition-cards-container.data-v-1cf27b2a {
   display: flex;
-  justify-content: space-between;
+  flex-direction: row;
+  padding-bottom: 10px;
 }
 .competition-card.data-v-1cf27b2a {
-  width: 30%;
+  width: calc(50% - 7.5px);
+  min-width: 180px;
   background-color: white;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-right: 15px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+.competition-card.data-v-1cf27b2a:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 .card-img.data-v-1cf27b2a {
   width: 100%;
-  height: 100px;
+  height: 120px;
 }
 .card-content.data-v-1cf27b2a {
   padding: 10px;
@@ -77,20 +90,32 @@
   font-size: 12px;
   color: #999;
 }
-.recruitment-scroll.data-v-1cf27b2a {
-  width: 100%;
+.recruitment-list.data-v-1cf27b2a {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 .recruitment-card.data-v-1cf27b2a {
-  width: 280px;
   background-color: white;
   border-radius: 12px;
   padding: 20px;
-  margin-right: 15px;
-  margin-bottom: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+.load-more-btn.data-v-1cf27b2a {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  margin-top: 10px;
+  cursor: pointer;
+}
+.load-more-text.data-v-1cf27b2a {
+  color: #4A90E2;
+  font-size: 14px;
+  font-weight: 500;
 }
 .recruitment-title.data-v-1cf27b2a {
   font-size: 16px;

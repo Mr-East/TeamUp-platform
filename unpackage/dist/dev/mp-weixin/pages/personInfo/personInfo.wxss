@@ -1,0 +1,250 @@
+
+.profile-container.data-v-0ef0eab5 {
+  padding-bottom: 60px;
+  background-color: #f7f8fa;
+  font-family: 'PingFang SC', sans-serif;
+}
+
+/* 顶部导航栏 */
+.top-nav.data-v-0ef0eab5 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.nav-left.data-v-0ef0eab5 {
+  display: flex;
+  align-items: center;
+}
+.back-btn.data-v-0ef0eab5 {
+  font-size: 20px;
+  color: #717784;
+  margin-right: 15px;
+}
+.nav-title.data-v-0ef0eab5 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+.nav-right.data-v-0ef0eab5 {
+  display: flex;
+  align-items: center;
+}
+.nav-icon.data-v-0ef0eab5 {
+  font-size: 18px;
+  color: #717784;
+  cursor: pointer;
+}
+
+/* 用户信息区 */
+.user-info.data-v-0ef0eab5 {
+  background: linear-gradient(135deg, #4A90E2 0%, #5CA6F8 100%);
+  padding: 30px 20px;
+  margin-bottom: 15px;
+}
+.user-info-content.data-v-0ef0eab5 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  color: white;
+  margin-bottom: 20px;
+}
+.avatar-container.data-v-0ef0eab5 {
+  position: relative;
+  margin-bottom: 20px;
+}
+.avatar.data-v-0ef0eab5 {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+.name-row.data-v-0ef0eab5 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.name.data-v-0ef0eab5 {
+  font-size: 20px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+.verification.data-v-0ef0eab5 {
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.3);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.verification-icon.data-v-0ef0eab5 {
+  font-size: 12px;
+  margin-right: 5px;
+}
+.verification-text.data-v-0ef0eab5 {
+  font-size: 12px;
+}
+.college.data-v-0ef0eab5 {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 5px;
+}
+.major.data-v-0ef0eab5 {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* 操作按钮 */
+.action-buttons.data-v-0ef0eab5 {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+.action-btn.data-v-0ef0eab5 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.action-btn.data-v-0ef0eab5:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+.action-icon.data-v-0ef0eab5 {
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+.action-text.data-v-0ef0eab5 {
+  font-size: 12px;
+  font-weight: bold;
+}
+.message-btn.data-v-0ef0eab5 {
+  flex: 1;
+  max-width: 120px;
+}
+.follow-btn.data-v-0ef0eab5 {
+  flex: 1;
+  max-width: 120px;
+}
+
+/* 个人简介 */
+.bio-section.data-v-0ef0eab5 {
+  background-color: white;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.bio-content.data-v-0ef0eab5 {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  margin-top: 10px;
+}
+
+/* 技能标签 */
+.skills-section.data-v-0ef0eab5 {
+  background-color: white;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.section-header.data-v-0ef0eab5 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.section-title.data-v-0ef0eab5 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+.skill-tags.data-v-0ef0eab5 {
+  display: flex;
+  flex-wrap: wrap;
+}
+.skill-tag.data-v-0ef0eab5 {
+  display: flex;
+  align-items: center;
+  background-color: #E8F0FE;
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.skill-dot.data-v-0ef0eab5 {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+.skill-text.data-v-0ef0eab5 {
+  color: #333;
+}
+.no-skills.data-v-0ef0eab5 {
+  padding: 20px 0;
+  text-align: center;
+}
+.no-skills-text.data-v-0ef0eab5 {
+  color: #999;
+  font-size: 14px;
+}
+
+/* 项目经历 */
+.projects-section.data-v-0ef0eab5 {
+  background-color: white;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.projects-list.data-v-0ef0eab5 {
+  margin-top: 10px;
+}
+.project-item.data-v-0ef0eab5 {
+  padding: 15px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.project-item.data-v-0ef0eab5:last-child {
+  border-bottom: none;
+}
+.project-title.data-v-0ef0eab5 {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  display: block;
+  margin-bottom: 5px;
+}
+.project-role.data-v-0ef0eab5 {
+  font-size: 12px;
+  color: #4A90E2;
+  display: block;
+  margin-bottom: 5px;
+}
+.project-description.data-v-0ef0eab5 {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+.no-projects.data-v-0ef0eab5 {
+  padding: 20px 0;
+  text-align: center;
+}
+.no-projects-text.data-v-0ef0eab5 {
+  color: #999;
+  font-size: 14px;
+}

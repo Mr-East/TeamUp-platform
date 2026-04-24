@@ -7,7 +7,7 @@
       <view class="user-info-content">
         <view class="avatar-container">
           <image :src="userInfo.avatar" mode="aspectFill" class="avatar" />
-          <view class="edit-avatar-btn">
+          <view class="edit-avatar-btn" @click="changeAvatar">
             <text class="edit-icon">✏️</text>
           </view>
         </view>
@@ -28,17 +28,14 @@
     <view class="skills-section">
       <view class="section-header">
         <text class="section-title">专业技能 (Expertise & Skills)</text>
-        <text class="edit-btn" @click="editSkills">✏️</text>
+        
       </view>
       <view class="skill-tags">
         <view class="skill-tag" v-for="(skill, index) in userInfo.skills" :key="index">
           <view class="skill-dot" :style="{ backgroundColor: getSkillColor(index) }"></view>
           <text class="skill-text">{{ skill }}</text>
         </view>
-        <view class="add-skill-btn" @click="addSkill">
-          <text class="add-icon">+</text>
-          <text class="add-text">Add</text>
-        </view>
+       
       </view>
     </view>
 
@@ -60,15 +57,22 @@
             <text class="setting-icon">👤</text>
             <text class="setting-label">个人信息编辑</text>
           </view>
-          <text class="setting-status">></text>
+          <div class="arrow-icon"></div>
+        </view>
+        <view class="setting-item" @click="goToMyPosts">
+          <view class="setting-left">
+            <text class="setting-icon">📝</text>
+            <text class="setting-label">我的发布</text>
+          </view>
+          <div class="arrow-icon"></div>
         </view>
         <view class="setting-item" @click="toggleNotification">
           <view class="setting-left">
             <text class="setting-icon">🔔</text>
             <text class="setting-label">推送通知</text>
           </view>
-          <view class="toggle-switch">
-            <view class="toggle-slider" :class="{ active: userInfo.notification }" @click="userInfo.notification = !userInfo.notification"></view>
+          <view class="toggle-switch" :class="{ active: userInfo.notification }" @click="toggleNotification">
+            <view class="toggle-slider" :class="{ active: userInfo.notification }"></view>
           </view>
         </view>
         <view class="setting-item logout" @click="logout">
@@ -83,16 +87,98 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { onShow } from '@dcloudio/uni-app';
 
-// 模拟用户数据
+// 检查登录状态
+onMounted(async () => {
+  const token = uni.getStorageSync('token');
+  if (!token) {
+    uni.navigateTo({
+      url: '/pages/login/login'
+    });
+    return;
+  }
+  
+  // 获取当前用户信息
+  await fetchUserInfo();
+});
+
+// 监听页面显示，重新获取用户信息
+onShow(async () => {
+  const token = uni.getStorageSync('token');
+  if (token) {
+    await fetchUserInfo();
+  }
+});
+
+// 用户数据
 const userInfo = ref({
-  name: '张三',
-  avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20male&image_size=square',
-  college: '计算机学院',
-  skills: ['Vue', 'JavaScript', 'Java', 'Python'],
+  name: '默认用户',
+  avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square',
+  college: '默认学院',
+  skills: [],
   notification: true
 });
+
+// 加载状态
+const loading = ref(true);
+
+// 获取用户信息
+const fetchUserInfo = async () => {
+  try {
+    loading.value = true;
+    const token = uni.getStorageSync('token');
+    
+    const userInfoFromStorage = uni.getStorageSync('userInfo');
+    const userId = userInfoFromStorage?.id;
+    
+    const response = await uni.request({
+      url: `http://localhost:3000/api/users/${userId}`,
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (response.data && response.data.success) {
+      userInfo.value = {
+        ...response.data.data,
+        skills: response.data.data.skills || [],
+        notification: response.data.data.notificationEnabled || true
+      };
+    } else {
+      uni.showToast({
+        title: '获取用户信息失败',
+        icon: 'none'
+      });
+      // 使用默认数据
+      userInfo.value = {
+        name: '张三',
+        avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20male&image_size=square',
+        college: '计算机学院',
+        skills: ['Vue', 'JavaScript', 'Java', 'Python'],
+        notification: true
+      };
+    }
+  } catch (error) {
+    console.error('获取用户信息错误:', error);
+    uni.showToast({
+      title: '网络错误，请稍后重试',
+      icon: 'none'
+    });
+    // 使用默认数据
+    userInfo.value = {
+      name: '默认用户',
+      avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square',
+      college: '默认学院',
+      skills: [],
+      notification: true
+    };
+  } finally {
+    loading.value = false;
+  }
+};
 
 // 编辑个人资料
 const editProfile = () => {
@@ -101,7 +187,9 @@ const editProfile = () => {
 
 // 编辑技能
 const editSkills = () => {
-  console.log('编辑技能');
+  uni.navigateTo({
+    url: '/pages/profile/edit-profile'
+  });
 };
 
 // 添加技能
@@ -128,14 +216,168 @@ const goToPrivacy = () => {
   });
 };
 
+// 跳转到我的发布页面
+const goToMyPosts = () => {
+  console.log('跳转到我的发布页面');
+  uni.navigateTo({
+    url: '/pages/profile/my-posts'
+  });
+};
+
 // 切换通知
-const toggleNotification = () => {
-  console.log('切换通知状态', userInfo.value.notification);
+const toggleNotification = async () => {
+  try {
+    const token = uni.getStorageSync('token');
+    const userId = uni.getStorageSync('userInfo')?.id;
+    
+    if (!token || !userId) {
+      uni.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    const response = await uni.request({
+      url: `http://localhost:3000/api/users/${userId}`,
+      method: 'PUT',
+      header: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      data: {
+        notificationEnabled: !userInfo.value.notification
+      }
+    });
+    
+    if (response.data && response.data.success) {
+      userInfo.value.notification = !userInfo.value.notification;
+      uni.showToast({
+        title: '设置成功',
+        icon: 'success'
+      });
+    } else {
+      uni.showToast({
+        title: '设置失败',
+        icon: 'none'
+      });
+    }
+  } catch (error) {
+    console.error('切换通知状态错误:', error);
+    uni.showToast({
+      title: '网络错误，请稍后重试',
+      icon: 'none'
+    });
+  }
+};
+
+// 更换头像
+const changeAvatar = () => {
+  uni.chooseImage({
+    count: 1,
+    sizeType: ['original', 'compressed'],
+    sourceType: ['album', 'camera'],
+    success: function(res) {
+      const tempFilePaths = res.tempFilePaths;
+      uploadAvatar(tempFilePaths[0]);
+    }
+  });
+};
+
+// 上传头像
+const uploadAvatar = async (tempFilePath) => {
+  try {
+    const token = uni.getStorageSync('token');
+    const userId = uni.getStorageSync('userInfo')?.id;
+    
+    if (!token || !userId) {
+      uni.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    uni.showLoading({ title: '上传中...' });
+    
+    const uploadTask = uni.uploadFile({
+      url: 'http://localhost:3000/api/users/avatar',
+      filePath: tempFilePath,
+      name: 'avatar',
+      header: {
+        'Authorization': `Bearer ${token}`
+      },
+      formData: {
+        'userId': userId
+      },
+      success: async function(uploadRes) {
+        try {
+          const response = JSON.parse(uploadRes.data);
+          if (response && response.success) {
+            // 更新本地头像
+            userInfo.value.avatar = response.data.avatar;
+            // 更新本地存储中的用户信息
+            const userInfoFromStorage = uni.getStorageSync('userInfo');
+            userInfoFromStorage.avatar = response.data.avatar;
+            uni.setStorageSync('userInfo', userInfoFromStorage);
+            
+            uni.showToast({
+              title: '头像上传成功',
+              icon: 'success'
+            });
+          } else {
+            uni.showToast({
+              title: '上传失败，请稍后重试',
+              icon: 'none'
+            });
+          }
+        } catch (error) {
+          console.error('解析上传响应错误:', error);
+          uni.showToast({
+            title: '上传失败，请稍后重试',
+            icon: 'none'
+          });
+        }
+      },
+      fail: function(error) {
+        console.error('上传头像错误:', error);
+        uni.showToast({
+          title: '上传失败，请稍后重试',
+          icon: 'none'
+        });
+      },
+      complete: function() {
+        uni.hideLoading();
+      }
+    });
+  } catch (error) {
+    console.error('上传头像错误:', error);
+    uni.hideLoading();
+    uni.showToast({
+      title: '网络错误，请稍后重试',
+      icon: 'none'
+    });
+  }
 };
 
 // 退出登录
 const logout = () => {
-  console.log('退出登录');
+  uni.showModal({
+    title: '退出登录',
+    content: '确定要退出登录吗？',
+    success: function(res) {
+      if (res.confirm) {
+        // 清除本地存储
+        uni.removeStorageSync('token');
+        uni.removeStorageSync('userInfo');
+        
+        // 跳转到登录页面
+        uni.navigateTo({
+          url: '/pages/login/login'
+        });
+      }
+    }
+  });
 };
 </script>
 
@@ -357,6 +599,17 @@ const logout = () => {
 .setting-status {
   font-size: 14px;
   color: #999;
+  font-family: 'PingFang SC', sans-serif;
+}
+
+/* CSS绘制箭头 */
+.arrow-icon {
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid #999;
+  border-right: 2px solid #999;
+  transform: rotate(45deg);
+  margin-left: 8px;
 }
 
 .toggle-switch {

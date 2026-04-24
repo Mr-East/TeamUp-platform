@@ -1,7 +1,7 @@
 <template>
   <view class="talent-card">
     <view class="talent-header">
-      <image :src="avatar" mode="aspectFill" class="avatar" />
+      <image :src="avatar" mode="aspectFill" class="avatar" @click="handleAvatarClick" />
       <view class="header-info">
         <text class="name">{{ name }}</text>
         <text class="major">{{ major }}</text>
@@ -64,7 +64,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['invite', 'greet']);
+const emit = defineEmits(['invite', 'greet', 'avatar-click']);
 
 const handleInvite = () => {
   emit('invite', props.id);
@@ -72,6 +72,10 @@ const handleInvite = () => {
 
 const handleGreet = () => {
   emit('greet', props.id);
+};
+
+const handleAvatarClick = () => {
+  emit('avatar-click', props.id);
 };
 </script>
 

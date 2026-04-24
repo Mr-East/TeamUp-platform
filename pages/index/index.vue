@@ -26,88 +26,152 @@
     <!-- 官方竞赛推荐 -->
     <view class="section">
       <view class="section-title">官方竞赛推荐</view>
-      <view class="competition-cards">
-        <view class="competition-card" v-for="(item, index) in competitions" :key="index">
-          <image :src="item.img" mode="aspectFill" class="card-img" />
-          <view class="card-content">
-            <text class="card-name">{{ item.name }}</text>
-            <text class="card-title">{{ item.title }}</text>
-            <text class="card-date">{{ item.date }}</text>
+      <view class="competition-scroll">
+        <scroll-view scroll-x show-scrollbar="false" enable-flex>
+          <view class="competition-cards-container">
+            <view class="competition-card" v-for="(item, index) in competitions" :key="index" @click="goToCompetition(item)">
+              <image :src="item.img" mode="aspectFill" class="card-img" />
+              <view class="card-content">
+                <text class="card-name">{{ item.name }}</text>
+                <text class="card-title">{{ item.title }}</text>
+                <text class="card-date">截止：{{ formatDate(item.date) }}</text>
+              </view>
+            </view>
           </view>
-        </view>
+        </scroll-view>
       </view>
     </view>
 
     <!-- 热门招募 -->
     <view class="section">
       <view class="section-title">热门招募</view>
-      <view class="recruitment-scroll">
-        <scroll-view scroll-x>
-          <view class="recruitment-card" v-for="(item, index) in recruitments" :key="index">
-            <text class="recruitment-title">{{ item.title }}</text>
-            <view class="skill-tags">
-              <view class="skill-tag" v-for="(skill, idx) in item.skills" :key="idx">{{ skill }}</view>
-            </view>
-            <text class="recruitment-date">截止时间：{{ item.date }}</text>
-            <text class="recruitment-people">人数：{{ item.people }}人</text>
+      <view class="recruitment-list">
+        <view class="recruitment-card" v-for="(item, index) in displayRecruitments" :key="index" @click="goToRecruitment(item)">
+          <text class="recruitment-title">{{ item.title }}</text>
+          <view class="skill-tags">
+            <view class="skill-tag" v-for="(skill, idx) in (item.skills || []).slice(0, 3)" :key="idx">{{ skill }}</view>
           </view>
-        </scroll-view>
+          <text class="recruitment-date">截止时间：{{ formatDate(item.date) }}</text>
+          <text class="recruitment-people">招募人数：{{ item.people || 0 }}人</text>
+        </view>
+        <view v-if="recruitments.length > 3" class="load-more-btn" @click="showAllRecruitments">
+          <text class="load-more-text">{{ showAll ? '收起' : '加载更多' }}</text>
+        </view>
       </view>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 
-// 模拟数据
-const competitions = [
-  {
-    title: '全国大学生互联网+创新创业大赛',
-    name: '互联网+',
-    date: '2026-06-30',
-    img: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=innovation%20competition%20poster&image_size=square'
-  },
-  {
-    title: '全国大学生数学建模竞赛',
-    name: '数学建模',
-    date: '2026-09-15',
-    img: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=mathematical%20modeling%20competition&image_size=square'
-  },
-  {
-    title: '全国大学生程序设计竞赛',
-    name: '程序设计',
-    date: '2026-10-20',
-    img: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=programming%20competition%20banner&image_size=square'
+// 检查登录状态
+onMounted(() => {
+  const token = uni.getStorageSync('token');
+  if (!token) {
+    uni.navigateTo({
+      url: '/pages/login/login'
+    });
   }
-];
 
-const recruitments = [
-  {
-    title: '寻找前端开发队友',
-    skills: ['Vue', 'React', 'JavaScript'],
-    date: '2026-05-10',
-    people: 2
-  },
-  {
-    title: 'AI项目组队',
-    skills: ['Python', 'TensorFlow', '机器学习'],
-    date: '2026-05-15',
-    people: 3
-  },
-  {
-    title: '产品设计团队招募',
-    skills: ['UI设计', '产品经理', '用户研究'],
-    date: '2026-05-20',
-    people: 2
-  },
-  {
-    title: '后端开发组队',
-    skills: ['Java', 'Spring Boot', '数据库'],
-    date: '2026-05-25',
-    people: 2
+  // 加载数据
+  fetchCompetitions();
+  fetchRecruitments();
+});
+
+// 竞赛数据
+const competitions = ref([]);
+
+// 招募数据
+const recruitments = ref([]);
+
+// 招募显示控制
+const showAll = ref(false);
+const displayRecruitments = computed(() => {
+  return showAll.value ? recruitments.value : recruitments.value.slice(0, 3);
+});
+
+const showAllRecruitments = () => {
+  showAll.value = !showAll.value;
+};
+
+// 获取竞赛数据
+const fetchCompetitions = async () => {
+  try {
+    const response = await uni.request({
+      url: 'http://localhost:3000/api/competitions',
+      method: 'GET'
+    });
+
+    if (response.data && response.data.success) {
+      competitions.value = response.data.data.map(comp => ({
+        id: comp.id,
+        name: comp.name,
+        title: comp.name,
+        date: comp.deadline,
+        img: comp.image || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=competition%20poster&image_size=square',
+        description: comp.description,
+        type: comp.type,
+        level: comp.level,
+        organization: comp.organization
+      }));
+    }
+  } catch (err) {
+    console.error('获取竞赛数据错误:', err);
   }
-];
+};
+
+// 获取招募数据
+const fetchRecruitments = async () => {
+  try {
+    const token = uni.getStorageSync('token');
+    const response = await uni.request({
+      url: 'http://localhost:3000/api/projects',
+      method: 'GET',
+      header: token ? { 'Authorization': `Bearer ${token}` } : {}
+    });
+
+    if (response.data && response.data.success) {
+      const projects = response.data.data.projects || [];
+      recruitments.value = projects.map(proj => ({
+        id: proj.id,
+        title: proj.title,
+        skills: proj.skills || [],
+        date: proj.deadline,
+        people: proj.peopleNeeded,
+        status: proj.status,
+        creatorName: proj.creator?.name
+      }));
+    }
+  } catch (err) {
+    console.error('获取招募数据错误:', err);
+  }
+};
+
+// 跳转到竞赛详情
+const goToCompetition = (competition) => {
+  // 暂时跳转到广场页面，因为竞赛详情页面不存在
+  uni.navigateTo({
+    url: `/pages/square/square?id=${competition.id}&data=${encodeURIComponent(JSON.stringify(competition))}`
+  });
+};
+
+// 跳转到招募详情
+const goToRecruitment = (recruitment) => {
+  uni.navigateTo({
+    url: `/pages/recruitment-detail/recruitment-detail?id=${recruitment.id}&data=${encodeURIComponent(JSON.stringify(recruitment))}`
+  });
+};
+
+// 格式化日期
+const formatDate = (dateString) => {
+  if (!dateString) return '未设置';
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 </script>
 
 <style scoped>
@@ -161,22 +225,37 @@ const recruitments = [
   margin-bottom: 15px;
 }
 
-.competition-cards {
+.competition-scroll {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.competition-cards-container {
   display: flex;
-  justify-content: space-between;
+  flex-direction: row;
+  padding-bottom: 10px;
 }
 
 .competition-card {
-  width: 30%;
+  width: calc(50% - 7.5px);
+  min-width: 180px;
   background-color: white;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-right: 15px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.competition-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .card-img {
   width: 100%;
-  height: 100px;
+  height: 120px;
 }
 
 .card-content {
@@ -205,21 +284,35 @@ const recruitments = [
   color: #999;
 }
 
-.recruitment-scroll {
-  width: 100%;
+.recruitment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .recruitment-card {
-  width: 280px;
   background-color: white;
   border-radius: 12px;
   padding: 20px;
-  margin-right: 15px;
-  margin-bottom: 15px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+
+.load-more-btn {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.load-more-text {
+  color: #4A90E2;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .recruitment-title {

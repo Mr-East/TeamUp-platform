@@ -101,6 +101,39 @@
 .empty-text.data-v-4c1b26cf {
   font-size: 14px;
 }
+.loading-state.data-v-4c1b26cf {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 0;
+  color: #4A90E2;
+}
+.loading-text.data-v-4c1b26cf {
+  font-size: 14px;
+}
+.error-state.data-v-4c1b26cf {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 0;
+  color: #ff4d4f;
+}
+.error-text.data-v-4c1b26cf {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.retry-btn.data-v-4c1b26cf {
+  padding: 6px 12px;
+  background-color: #4A90E2;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.retry-btn.data-v-4c1b26cf:hover {
+  background-color: #357abd;
+}
 .message-item.data-v-4c1b26cf {
   display: flex;
   padding: 15px;

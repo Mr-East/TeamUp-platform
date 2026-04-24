@@ -116,7 +116,6 @@
   letter-spacing: 1px;
   margin-bottom: 8px;
   display: block;
-  padding-left: 4px;
 }
 .field-input.data-v-5f23ae20 {
   width: 100%;
@@ -128,6 +127,7 @@
   color: #191c1e;
   border: 1px solid #c1c6d5;
   outline: none;
+  text-align: left;
 }
 .field-input.data-v-5f23ae20:focus {
   border-color: #4A90E2;
@@ -162,6 +162,8 @@
 .skill-tags.data-v-5f23ae20 {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 .skill-tag.data-v-5f23ae20 {
   display: flex;
@@ -170,8 +172,6 @@
   color: #007257;
   padding: 8px 12px;
   border-radius: 8px;
-  margin-right: 10px;
-  margin-bottom: 10px;
   font-size: 12px;
   font-weight: bold;
 }
@@ -188,8 +188,6 @@
   color: #4A90E2;
   padding: 8px 12px;
   border-radius: 8px;
-  margin-right: 10px;
-  margin-bottom: 10px;
   font-size: 12px;
   font-weight: bold;
   cursor: pointer;
@@ -210,6 +208,22 @@
 .picker-value.data-v-5f23ae20 {
   display: flex;
   align-items: center;
+}
+.people-picker-container.data-v-5f23ae20 {
+  position: relative;
+  width: 100%;
+}
+.toggle-input-btn.data-v-5f23ae20 {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #4A90E2;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  z-index: 1;
 }
 
 /* 选项卡片 */
@@ -301,6 +315,103 @@
   margin-right: 8px;
 }
 .success-text.data-v-5f23ae20 {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* 技能选择弹窗 */
+.skill-modal.data-v-5f23ae20 {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.skill-modal-content.data-v-5f23ae20 {
+  width: 100%;
+  max-height: 70vh;
+  background-color: white;
+  border-radius: 20px 20px 0 0;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.modal-header.data-v-5f23ae20 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.modal-title.data-v-5f23ae20 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #191c1e;
+}
+.modal-close.data-v-5f23ae20 {
+  font-size: 28px;
+  color: #717784;
+  line-height: 1;
+}
+.category-tabs.data-v-5f23ae20 {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+.category-tab.data-v-5f23ae20 {
+  padding: 8px 16px;
+  background-color: #eceef1;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #717784;
+  white-space: nowrap;
+}
+.category-tab.active.data-v-5f23ae20 {
+  background-color: #4A90E2;
+  color: white;
+}
+.skill-grid.data-v-5f23ae20 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-height: 40vh;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+.skill-item.data-v-5f23ae20 {
+  padding: 10px 16px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #191c1e;
+  border: 2px solid transparent;
+}
+.skill-item.selected.data-v-5f23ae20 {
+  background-color: #e8f0fe;
+  color: #4A90E2;
+  border-color: #4A90E2;
+}
+.modal-footer.data-v-5f23ae20 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 15px;
+  border-top: 1px solid #f0f0f0;
+}
+.selected-count.data-v-5f23ae20 {
+  font-size: 14px;
+  color: #717784;
+}
+.confirm-btn.data-v-5f23ae20 {
+  padding: 10px 30px;
+  background-color: #4A90E2;
+  color: white;
+  border-radius: 20px;
   font-size: 14px;
   font-weight: bold;
 }

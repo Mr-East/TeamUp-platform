@@ -1,0 +1,201 @@
+
+.my-posts-container.data-v-16059c8b {
+  min-height: 100vh;
+  background-color: #f7f9fc;
+  font-family: 'PingFang SC', sans-serif;
+}
+
+/* 顶部导航栏 */
+.top-nav.data-v-16059c8b {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.nav-left.data-v-16059c8b {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.back-btn.data-v-16059c8b {
+  font-size: 20px;
+  color: #3F8EF7;
+}
+.nav-title.data-v-16059c8b {
+  font-size: 18px;
+  font-weight: bold;
+  color: #191c1e;
+}
+
+/* 标签切换 */
+.tab-bar.data-v-16059c8b {
+  display: flex;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 16px;
+}
+.tab-item.data-v-16059c8b {
+  flex: 1;
+  padding: 16px;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+}
+.tab-item.active.data-v-16059c8b {
+  color: #3F8EF7;
+}
+.tab-item.active.data-v-16059c8b::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  width: 50%;
+  height: 2px;
+  background-color: #3F8EF7;
+}
+.tab-text.data-v-16059c8b {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* 帖子列表 */
+.posts-list.data-v-16059c8b {
+  padding: 0 16px 20px;
+}
+
+/* 空状态 */
+.empty-state.data-v-16059c8b {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+.empty-icon.data-v-16059c8b {
+  font-size: 48px;
+  margin-bottom: 12px;
+  color: #c1c6d5;
+}
+.empty-text.data-v-16059c8b {
+  font-size: 14px;
+  color: #717784;
+  text-align: center;
+}
+
+/* 帖子卡片 */
+.post-card.data-v-16059c8b {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* 帖子头部 */
+.post-header.data-v-16059c8b {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.post-title.data-v-16059c8b {
+  font-size: 16px;
+  font-weight: bold;
+  color: #191c1e;
+  flex: 1;
+  margin-right: 12px;
+  line-height: 1.4;
+}
+.post-status.data-v-16059c8b {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+.post-status.active.data-v-16059c8b {
+  background-color: rgba(0, 91, 178, 0.1);
+  color: #005bb2;
+}
+.post-status.closed.data-v-16059c8b {
+  background-color: rgba(113, 119, 132, 0.1);
+  color: #717784;
+}
+
+/* 帖子信息 */
+.post-info.data-v-16059c8b {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.post-date.data-v-16059c8b,
+.post-people.data-v-16059c8b {
+  font-size: 14px;
+  color: #717784;
+}
+
+/* 技能标签 */
+.skill-tags.data-v-16059c8b {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.skill-tag.data-v-16059c8b {
+  background-color: #e6e8eb;
+  color: #414753;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+/* 操作按钮 */
+.post-actions.data-v-16059c8b {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+.action-btn.data-v-16059c8b {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid #c1c6d5;
+  color: #717784;
+}
+.action-btn.data-v-16059c8b:active {
+  transform: scale(0.95);
+}
+.action-btn.active.data-v-16059c8b {
+  background-color: #005bb2;
+  color: white;
+  border-color: #005bb2;
+}
+.action-btn.edit.data-v-16059c8b {
+  border-color: #c1c6d5;
+  color: #717784;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+.posts-list.data-v-16059c8b {
+    padding: 0 12px 16px;
+}
+.post-card.data-v-16059c8b {
+    padding: 16px;
+}
+.post-info.data-v-16059c8b {
+    flex-direction: column;
+    gap: 4px;
+}
+}

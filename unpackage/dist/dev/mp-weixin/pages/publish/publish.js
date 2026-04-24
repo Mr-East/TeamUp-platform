@@ -40,15 +40,15 @@ const _sfc_main = {
     return (_ctx, _cache) => {
       return common_vendor.e({
         a: activeTab.value === "recruit" ? 1 : "",
-        b: common_vendor.o(($event) => activeTab.value = "recruit"),
+        b: common_vendor.o(($event) => activeTab.value = "recruit", "f4"),
         c: activeTab.value === "join" ? 1 : "",
-        d: common_vendor.o(($event) => activeTab.value = "join"),
+        d: common_vendor.o(($event) => activeTab.value = "join", "eb"),
         e: activeTab.value === "recruit"
       }, activeTab.value === "recruit" ? common_vendor.e({
         f: recruitForm.value.competitionName,
-        g: common_vendor.o(($event) => recruitForm.value.competitionName = $event.detail.value),
+        g: common_vendor.o(($event) => recruitForm.value.competitionName = $event.detail.value, "ad"),
         h: recruitForm.value.description,
-        i: common_vendor.o(($event) => recruitForm.value.description = $event.detail.value),
+        i: common_vendor.o(($event) => recruitForm.value.description = $event.detail.value, "d5"),
         j: common_vendor.f(recruitForm.value.skills, (skill, index, i0) => {
           return {
             a: common_vendor.t(skill),
@@ -56,18 +56,18 @@ const _sfc_main = {
             c: index
           };
         }),
-        k: common_vendor.o(showSkillPicker),
+        k: common_vendor.o(showSkillPicker, "de"),
         l: recruitForm.value.deadline,
-        m: common_vendor.o(($event) => recruitForm.value.deadline = $event.detail.value),
+        m: common_vendor.o(($event) => recruitForm.value.deadline = $event.detail.value, "8a"),
         n: recruitForm.value.cover
       }, recruitForm.value.cover ? {
         o: recruitForm.value.cover
       } : {}, {
-        p: common_vendor.o(uploadCover),
-        q: common_vendor.o(publishRecruit)
+        p: common_vendor.o(uploadCover, "ca"),
+        q: common_vendor.o(publishRecruit, "cb")
       }) : {
         r: joinForm.value.competitionName,
-        s: common_vendor.o(($event) => joinForm.value.competitionName = $event.detail.value),
+        s: common_vendor.o(($event) => joinForm.value.competitionName = $event.detail.value, "3d"),
         t: common_vendor.f(joinForm.value.skills, (skill, index, i0) => {
           return {
             a: common_vendor.t(skill),
@@ -75,10 +75,10 @@ const _sfc_main = {
             c: index
           };
         }),
-        v: common_vendor.o(showJoinSkillPicker),
+        v: common_vendor.o(showJoinSkillPicker, "05"),
         w: joinForm.value.teamType,
-        x: common_vendor.o(($event) => joinForm.value.teamType = $event.detail.value),
-        y: common_vendor.o(publishJoin)
+        x: common_vendor.o(($event) => joinForm.value.teamType = $event.detail.value, "78"),
+        y: common_vendor.o(publishJoin, "9a")
       });
     };
   }

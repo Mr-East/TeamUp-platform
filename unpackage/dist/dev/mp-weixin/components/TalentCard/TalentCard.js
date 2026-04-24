@@ -32,7 +32,7 @@ const _sfc_main = {
       required: true
     }
   },
-  emits: ["invite", "greet"],
+  emits: ["invite", "greet", "avatar-click"],
   setup(__props, { emit: __emit }) {
     const props = __props;
     const emit = __emit;
@@ -42,29 +42,33 @@ const _sfc_main = {
     const handleGreet = () => {
       emit("greet", props.id);
     };
+    const handleAvatarClick = () => {
+      emit("avatar-click", props.id);
+    };
     return (_ctx, _cache) => {
       return common_vendor.e({
         a: __props.avatar,
-        b: common_vendor.t(__props.name),
-        c: common_vendor.t(__props.major),
-        d: __props.competitionTypes && __props.competitionTypes.length > 0
+        b: common_vendor.o(handleAvatarClick, "62"),
+        c: common_vendor.t(__props.name),
+        d: common_vendor.t(__props.major),
+        e: __props.competitionTypes && __props.competitionTypes.length > 0
       }, __props.competitionTypes && __props.competitionTypes.length > 0 ? {
-        e: common_vendor.f(__props.competitionTypes, (type, idx, i0) => {
+        f: common_vendor.f(__props.competitionTypes, (type, idx, i0) => {
           return {
             a: common_vendor.t(type),
             b: idx
           };
         })
       } : {}, {
-        f: common_vendor.t(__props.intro),
-        g: common_vendor.f(__props.skills, (skill, idx, i0) => {
+        g: common_vendor.t(__props.intro),
+        h: common_vendor.f(__props.skills, (skill, idx, i0) => {
           return {
             a: common_vendor.t(skill),
             b: idx
           };
         }),
-        h: common_vendor.o(handleInvite),
-        i: common_vendor.o(handleGreet)
+        i: common_vendor.o(handleInvite, "ed"),
+        j: common_vendor.o(handleGreet, "b8")
       });
     };
   }

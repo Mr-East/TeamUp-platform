@@ -30,10 +30,21 @@
 
     <!-- 私信列表 -->
     <view v-if="activeTab === 'private'" class="message-list">
-      <view v-if="privateMessages.length === 0" class="empty-state">
+      <!-- 加载状态 -->
+      <view v-if="loading.chats" class="loading-state">
+        <text class="loading-text">加载中...</text>
+      </view>
+      <!-- 错误状态 -->
+      <view v-else-if="error.chats" class="error-state">
+        <text class="error-text">{{ error.chats }}</text>
+        <view class="retry-btn" @click="fetchPrivateMessages">重试</view>
+      </view>
+      <!-- 空状态 -->
+      <view v-else-if="privateMessages.length === 0" class="empty-state">
         <text class="empty-text">暂无私信</text>
       </view>
-      <view v-else class="message-item" v-for="(message, index) in privateMessages" :key="index" @click="goToChat(message.id)">
+      <!-- 私信列表 -->
+      <view v-else class="message-item" v-for="(message, index) in privateMessages" :key="index" @click="goToChat(message.id, message.otherUserId, message.name, message.avatar)">
         <view class="avatar-container">
           <image :src="message.avatar" mode="aspectFill" class="avatar" />
         </view>
@@ -56,9 +67,20 @@
         <text class="system-section-title">系统通知</text>
         <text class="mark-read-btn" @click="markAsRead">全部标为已读</text>
       </view>
-      <view v-if="systemNotifications.length === 0" class="empty-state">
+      <!-- 加载状态 -->
+      <view v-if="loading.notifications" class="loading-state">
+        <text class="loading-text">加载中...</text>
+      </view>
+      <!-- 错误状态 -->
+      <view v-else-if="error.notifications" class="error-state">
+        <text class="error-text">{{ error.notifications }}</text>
+        <view class="retry-btn" @click="fetchSystemNotifications">重试</view>
+      </view>
+      <!-- 空状态 -->
+      <view v-else-if="systemNotifications.length === 0" class="empty-state">
         <text class="empty-text">暂无通知</text>
       </view>
+      <!-- 通知列表 -->
       <view v-else class="system-list">
         <view class="system-item" v-for="(notification, index) in systemNotifications" :key="index">
           <view class="system-icon">
@@ -80,85 +102,222 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-
-const router = useRouter();
+import { ref, watch } from 'vue';
+import { onLoad, onShow } from '@dcloudio/uni-app';
 
 // 激活的标签
 const activeTab = ref('private');
+// 私信数据
+const privateMessages = ref([]);
+// 系统通知数据
+const systemNotifications = ref([]);
+// 加载状态
+const loading = ref({
+  chats: false,
+  notifications: false
+});
+// 错误信息
+const error = ref({
+  chats: '',
+  notifications: ''
+});
 
-// 模拟私信数据
-const privateMessages = ref([
-  {
-    id: 1,
-    name: '李明华 (AI Lab)',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB0KAcwGbxp7qLD7ncmDLQhVaSzAmlfwYwprJh2mk4dotcs7fUNcbJSKgxsuJbHh17SxPsZdXprCVjg7xowqdR9m_aKtV_5B5ld9-MScfU9gTkAwJ2qz6eIjWPhKNKVxBxxnMTKu3pB8OSosYMrrhCiZnl_thkEaa-lPB7KCYkBabs7_hWMOc7mMi0wyQpL5uH6EKEACIlSjw2V_3Y1s1ob-kXwexpLuKPzzLHv1CB7DIyzOuwfZOC4QiafYcpuiAI1UpNF4Cr9RVs',
-    preview: '关于这次的数学建模比赛，我想请教一下关于算法优化的部分...',
-    time: '14:20',
-    unread: 3
-  },
-  {
-    id: 2,
-    name: 'Sarah Zhang',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCgn616qrqIQu_QRYcw2uzUWYBJcR-XheCAZGTEISq5T3PtDR6daDfeEbbqWoI2Vr_AqKdnXYTm5vMFx9P-hHD-Vc_0fElkm1gyhFfGmi8_ctvcfpLUy-EJqEQjBA-MgzaVO4RpD0zq1VqPK0IEzIQhZtBf7ksTsV9NzfIVqGqwigYNDh-nQlC1TW_QrOjecUi0p0O8qXhti1BvbmvLbVSzCCYpR8zVr74RKsg4F6LDAlenMZHCa5ISbEqCyCjf_RA-xUH336JAS4k',
-    preview: 'Great progress on the UI design! Let\'s sync tomorrow at the hub.',
-    time: '11:05'
-  },
-  {
-    id: 3,
-    name: '陈教授',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBEca5vDCgdHjuz7DJGYhyzDAR7r9ovibbthmVmnhGglmpEudEZaFB4j2vRq8SUUItB2uL1YmRm4HYuyVSq9b-2pzfp4R07lbyqDzAe6bjHroqSBy1Tywo_Tv_Fceiv-ZV218v3UO5KHb-zKq56cKVz07PoqVKsk2-4drAyLfO44xbMQwYwWsqtwo30TcYADvkfj0HCjhGKEHmHakbJZCNGtb5uGkjm8MkcTjI9GP1ufQd9RuB0uQPffHtUmymsTBSBdpyRohB_kfw',
-    preview: '你的论文初稿已经看过了，有一些细节需要我们当面讨论一下。',
-    time: '昨天'
-  },
-  {
-    id: 4,
-    name: '创新大赛交流群',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD8mFUYNFqLwJPauGgBN1tp1rWcJcyNKcKPlK20hQ2PFv_grSeC1ag_Q_lf1OgvLV1-SflOgmNg5GvDkNphgvNUpFBOQhAPIFome91pGcPzeBhJ0oni4xviBzcVEn_xr5YWDsXNsiy9fg8Zqk4rMBkkuyG5z4XbZZv_y09BKSuxvYISp1UegrClTF7SF1Bjfk5sk2OAwLV6-Ot7f-_mhGqjl26CRoxM5mQXuS4_6NLzw1GnZAHudWj96Pa6rsq9H8wltA7UwHWqhho',
-    preview: '<span class="text-primary font-semibold">王小二:</span> 刚才发布的通知大家都看到了吗？',
-    time: '周三'
+// 检查登录状态并获取数据
+onLoad(async () => {
+  const token = uni.getStorageSync('token');
+  if (!token) {
+    uni.navigateTo({
+      url: '/pages/login/login'
+    });
+    return;
   }
-]);
+  
+  // 获取私信列表和系统通知
+  await fetchPrivateMessages();
+  await fetchSystemNotifications();
+});
 
-// 模拟系统通知数据
-const systemNotifications = ref([
-  {
-    id: 1,
-    title: '竞赛提醒',
-    content: '全国大学生互联网+创新创业大赛报名截止时间为2026年5月10日，请尽快完成报名',
-    time: '2026-04-17 09:00',
-    type: 'reminder'
-  },
-  {
-    id: 2,
-    title: '审核结果',
-    content: '您的身份认证已通过，现在可以发布招募信息了',
-    time: '2026-04-16 14:30',
-    type: 'approval'
-  },
-  {
-    id: 3,
-    title: '竞赛提醒',
-    content: '全国大学生数学建模竞赛开始报名了，截止时间为2026年6月30日',
-    time: '2026-04-15 10:00',
-    type: 'reminder'
+// 页面显示时重新获取数据
+onShow(async () => {
+  const token = uni.getStorageSync('token');
+  if (token) {
+    await fetchPrivateMessages();
+    await fetchSystemNotifications();
   }
-]);
+});
+
+// 监听标签切换，切换时获取对应数据
+watch(activeTab, async (newTab) => {
+  if (newTab === 'private' && privateMessages.value.length === 0) {
+    await fetchPrivateMessages();
+  } else if (newTab === 'system' && systemNotifications.value.length === 0) {
+    await fetchSystemNotifications();
+  }
+});
+
+// 获取私信列表
+const fetchPrivateMessages = async () => {
+  try {
+    loading.value.chats = true;
+    error.value.chats = '';
+    
+    const token = uni.getStorageSync('token');
+    const response = await uni.request({
+      url: 'http://localhost:3000/api/messages/chats',
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (response.data && response.data.success) {
+      const chatsData = response.data.data || response.data || [];
+      privateMessages.value = chatsData.map(chat => {
+        const otherUser = chat.otherUser || {};
+        return {
+          id: chat.id,
+          name: otherUser.name || '未知用户',
+          avatar: otherUser.avatar || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square',
+          preview: chat.lastMessage || '暂无消息',
+          time: formatTime(chat.updated_at),
+          unread: chat.unreadCount || 0,
+          otherUserId: otherUser.id
+        };
+      });
+    } else {
+      error.value.chats = '获取私信列表失败';
+      privateMessages.value = [];
+    }
+  } catch (err) {
+    console.error('获取私信列表错误:', err);
+    error.value.chats = '网络错误，请稍后重试';
+    // 使用默认数据
+    privateMessages.value = [];
+  } finally {
+    loading.value.chats = false;
+  }
+};
+
+// 获取系统通知
+const fetchSystemNotifications = async () => {
+  try {
+    loading.value.notifications = true;
+    error.value.notifications = '';
+    
+    const token = uni.getStorageSync('token');
+    const response = await uni.request({
+      url: 'http://localhost:3000/api/notifications',
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (response.data && response.data.success) {
+      systemNotifications.value = response.data.data.map(notification => ({
+        id: notification.id,
+        title: notification.title || '系统通知',
+        content: notification.content || '',
+        time: formatTime(notification.created_at),
+        type: notification.type || 'reminder'
+      }));
+    } else {
+      error.value.notifications = '获取系统通知失败';
+      // 使用默认数据
+      systemNotifications.value = [];
+    }
+  } catch (err) {
+    console.error('获取系统通知错误:', err);
+    error.value.notifications = '网络错误，请稍后重试';
+    // 使用默认数据
+    systemNotifications.value = [];
+  } finally {
+    loading.value.notifications = false;
+  }
+};
+
+// 格式化时间
+const formatTime = (timeString) => {
+  if (!timeString) return '';
+  
+  const date = new Date(timeString);
+  const now = new Date();
+  const diffTime = now - date;
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    // 今天
+    return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  } else if (diffDays === 1) {
+    // 昨天
+    return '昨天';
+  } else if (diffDays < 7) {
+    // 一周内
+    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    return weekdays[date.getDay()];
+  } else {
+    // 超过一周
+    return date.toLocaleDateString('zh-CN');
+  }
+};
 
 // 跳转到聊天页面
-const goToChat = (id) => {
-  router.push({ path: '/pages/chat/chat', query: { id } });
+const goToChat = (chatId, otherUserId, name, avatar) => {
+  const currentUser = uni.getStorageSync('userInfo');
+  const currentUserId = currentUser?.id;
+
+  if (otherUserId === currentUserId) {
+    uni.showToast({
+      title: '不能与自己聊天',
+      icon: 'none'
+    });
+    return;
+  }
+
+  uni.navigateTo({
+    url: `/pages/chat/chat?chatId=${chatId}&otherUserId=${otherUserId}&name=${encodeURIComponent(name)}&avatar=${encodeURIComponent(avatar || '')}`
+  });
 };
 
 // 跳转到组队申请
 const goToInvites = () => {
-  console.log('点击组队申请');
+  uni.navigateTo({
+    url: '/pages/invites/invites'
+  });
 };
 
 // 全部标为已读
-const markAsRead = () => {
-  console.log('全部标为已读');
+const markAsRead = async () => {
+  try {
+    const token = uni.getStorageSync('token');
+    const response = await uni.request({
+      url: 'http://localhost:3000/api/notifications/read_all',
+      method: 'PUT',
+      header: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (response.data && response.data.success) {
+      uni.showToast({
+        title: '已全部标记为已读',
+        icon: 'success'
+      });
+      // 重新获取通知列表
+      await fetchSystemNotifications();
+    } else {
+      uni.showToast({
+        title: '标记失败，请稍后重试',
+        icon: 'none'
+      });
+    }
+  } catch (err) {
+    console.error('标记通知已读错误:', err);
+    uni.showToast({
+      title: '网络错误，请稍后重试',
+      icon: 'none'
+    });
+  }
 };
 </script>
 
@@ -282,6 +441,45 @@ const markAsRead = () => {
 
 .empty-text {
   font-size: 14px;
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 0;
+  color: #4A90E2;
+}
+
+.loading-text {
+  font-size: 14px;
+}
+
+.error-state {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 0;
+  color: #ff4d4f;
+}
+
+.error-text {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.retry-btn {
+  padding: 6px 12px;
+  background-color: #4A90E2;
+  color: white;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.retry-btn:hover {
+  background-color: #357abd;
 }
 
 .message-item {

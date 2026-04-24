@@ -203,14 +203,14 @@
 .skill-tag.data-v-4438b7d4 {
   display: flex;
   align-items: center;
-  background-color: #6bfbcb;
-  color: #007257;
+  background-color: #4A90E2;
+  color: white;
   padding: 6px 12px;
   border-radius: 8px;
   margin-right: 12px;
   margin-bottom: 12px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0, 114, 87, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 .skill-text.data-v-4438b7d4 {
   font-size: 14px;
