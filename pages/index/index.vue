@@ -1,24 +1,16 @@
 <template>
   <view class="index-container">
-    <!-- 顶部搜索栏 -->
-    <view class="search-bar">
-      <view class="search-input">
-        <text class="search-icon">🔍</text>
-        <input type="text" placeholder="搜索竞赛 / 技能 / 队伍" class="input" />
-      </view>
-    </view>
-
     <!-- 轮播图 -->
     <view class="banner">
       <swiper autoplay indicator-dots>
         <swiper-item>
-          <image src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=campus%20competition%20banner%20design%20with%20modern%20style&image_size=landscape_16_9" mode="aspectFill" class="banner-img" />
+          <image src="/static/hlw.jpg" mode="aspectFill" class="banner-img" />
         </swiper-item>
         <swiper-item>
-          <image src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20team%20building%20event%20promotion&image_size=landscape_16_9" mode="aspectFill" class="banner-img" />
+          <image src="/static/fwwb.jpg" mode="aspectFill" class="banner-img" />
         </swiper-item>
         <swiper-item>
-          <image src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=tech%20competition%20announcement%20banner&image_size=landscape_16_9" mode="aspectFill" class="banner-img" />
+          <image src="/static/sxjm.jpg" mode="aspectFill" class="banner-img" />
         </swiper-item>
       </swiper>
     </view>
@@ -29,7 +21,12 @@
       <view class="competition-scroll">
         <scroll-view scroll-x show-scrollbar="false" enable-flex>
           <view class="competition-cards-container">
-            <view class="competition-card" v-for="(item, index) in competitions" :key="index" @click="goToCompetition(item)">
+            <view
+              class="competition-card"
+              v-for="(item, index) in competitions"
+              :key="index"
+              @click="goToCompetition(item)"
+            >
               <image :src="item.img" mode="aspectFill" class="card-img" />
               <view class="card-content">
                 <text class="card-name">{{ item.name }}</text>
@@ -46,16 +43,30 @@
     <view class="section">
       <view class="section-title">热门招募</view>
       <view class="recruitment-list">
-        <view class="recruitment-card" v-for="(item, index) in displayRecruitments" :key="index" @click="goToRecruitment(item)">
+        <view
+          class="recruitment-card"
+          v-for="(item, index) in displayRecruitments"
+          :key="index"
+          @click="goToRecruitment(item)"
+        >
           <text class="recruitment-title">{{ item.title }}</text>
           <view class="skill-tags">
-            <view class="skill-tag" v-for="(skill, idx) in (item.skills || []).slice(0, 3)" :key="idx">{{ skill }}</view>
+            <view
+              class="skill-tag"
+              v-for="(skill, idx) in (item.skills || []).slice(0, 3)"
+              :key="idx"
+              >{{ skill }}</view
+            >
           </view>
           <text class="recruitment-date">截止时间：{{ formatDate(item.date) }}</text>
           <text class="recruitment-people">招募人数：{{ item.people || 0 }}人</text>
         </view>
-        <view v-if="recruitments.length > 3" class="load-more-btn" @click="showAllRecruitments">
-          <text class="load-more-text">{{ showAll ? '收起' : '加载更多' }}</text>
+        <view
+          v-if="recruitments.length > 3"
+          class="load-more-btn"
+          @click="showAllRecruitments"
+        >
+          <text class="load-more-text">{{ showAll ? "收起" : "加载更多" }}</text>
         </view>
       </view>
     </view>
@@ -63,14 +74,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed } from "vue";
 
 // 检查登录状态
 onMounted(() => {
-  const token = uni.getStorageSync('token');
+  const token = uni.getStorageSync("token");
   if (!token) {
     uni.navigateTo({
-      url: '/pages/login/login'
+      url: "/pages/login/login",
     });
   }
 
@@ -99,52 +110,78 @@ const showAllRecruitments = () => {
 const fetchCompetitions = async () => {
   try {
     const response = await uni.request({
-      url: 'http://localhost:3000/api/competitions',
-      method: 'GET'
+      url: "http://localhost:3000/api/competitions",
+      method: "GET",
     });
 
     if (response.data && response.data.success) {
-      competitions.value = response.data.data.map(comp => ({
-        id: comp.id,
-        name: comp.name,
-        title: comp.name,
-        date: comp.deadline,
-        img: comp.image || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=competition%20poster&image_size=square',
-        description: comp.description,
-        type: comp.type,
-        level: comp.level,
-        organization: comp.organization
-      }));
+      const competitionData = response.data.data;
+      const competitionProjects = competitionData.projects || [];
+
+      // 使用 Map 来过滤相同类型的竞赛，保留每个类型的第一个项目
+      const filteredMap = new Map();
+      competitionProjects.forEach((comp) => {
+        const type = comp.competitionType || '其他';
+        // 如果这个类型还没添加过，或者当前项目有封面但已添加的没有封面，则替换
+        if (!filteredMap.has(type)) {
+          filteredMap.set(type, comp);
+        } else {
+          const existing = filteredMap.get(type);
+          // 如果已存在的没有封面但当前有封面，则替换
+          if (!existing.coverImage && comp.coverImage) {
+            filteredMap.set(type, comp);
+          }
+        }
+      });
+
+      // 将 Map 转换为数组并映射数据
+      competitions.value = Array.from(filteredMap.values())
+        .slice(0, 6) // 限制最多显示6个
+        .map((comp) => ({
+          id: comp.id,
+          // name 显示竞赛类型（蓝色标题）
+          name: comp.competitionType || comp.type || '',
+          // title 显示项目标题（黑色主标题）
+          title: comp.title || comp.competitionName || '未命名项目',
+          date: comp.deadline,
+          img: comp.coverImage ||
+            "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=competition%20poster&image_size=square",
+          description: comp.description,
+          // 竞赛类型/级别单独存储
+          type: comp.competitionType || comp.type,
+          level: comp.level,
+          organization: comp.organization,
+        }));
     }
   } catch (err) {
-    console.error('获取竞赛数据错误:', err);
+    console.error("获取竞赛数据错误:", err);
   }
 };
 
 // 获取招募数据
 const fetchRecruitments = async () => {
   try {
-    const token = uni.getStorageSync('token');
+    const token = uni.getStorageSync("token");
     const response = await uni.request({
-      url: 'http://localhost:3000/api/projects',
-      method: 'GET',
-      header: token ? { 'Authorization': `Bearer ${token}` } : {}
+      url: "http://localhost:3000/api/projects",
+      method: "GET",
+      header: token ? { Authorization: `Bearer ${token}` } : {},
     });
 
     if (response.data && response.data.success) {
       const projects = response.data.data.projects || [];
-      recruitments.value = projects.map(proj => ({
+      recruitments.value = projects.map((proj) => ({
         id: proj.id,
         title: proj.title,
         skills: proj.skills || [],
         date: proj.deadline,
         people: proj.peopleNeeded,
         status: proj.status,
-        creatorName: proj.creator?.name
+        creatorName: proj.creator?.name,
       }));
     }
   } catch (err) {
-    console.error('获取招募数据错误:', err);
+    console.error("获取招募数据错误:", err);
   }
 };
 
@@ -152,24 +189,28 @@ const fetchRecruitments = async () => {
 const goToCompetition = (competition) => {
   // 暂时跳转到广场页面，因为竞赛详情页面不存在
   uni.navigateTo({
-    url: `/pages/square/square?id=${competition.id}&data=${encodeURIComponent(JSON.stringify(competition))}`
+    url: `/pages/square/square?id=${competition.id}&data=${encodeURIComponent(
+      JSON.stringify(competition)
+    )}`,
   });
 };
 
 // 跳转到招募详情
 const goToRecruitment = (recruitment) => {
   uni.navigateTo({
-    url: `/pages/recruitment-detail/recruitment-detail?id=${recruitment.id}&data=${encodeURIComponent(JSON.stringify(recruitment))}`
+    url: `/pages/recruitment-detail/recruitment-detail?id=${
+      recruitment.id
+    }&data=${encodeURIComponent(JSON.stringify(recruitment))}`,
   });
 };
 
 // 格式化日期
 const formatDate = (dateString) => {
-  if (!dateString) return '未设置';
+  if (!dateString) return "未设置";
   const date = new Date(dateString);
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
 </script>
@@ -181,7 +222,7 @@ const formatDate = (dateString) => {
 
 .search-bar {
   padding: 10px;
-  background-color: #4A90E2;
+  background-color: #4a90e2;
 }
 
 .search-input {
@@ -264,7 +305,7 @@ const formatDate = (dateString) => {
 
 .card-name {
   font-size: 12px;
-  color: #4A90E2;
+  color: #4a90e2;
   font-weight: 500;
   margin-bottom: 4px;
   display: block;
@@ -310,7 +351,7 @@ const formatDate = (dateString) => {
 }
 
 .load-more-text {
-  color: #4A90E2;
+  color: #4a90e2;
   font-size: 14px;
   font-weight: 500;
 }
@@ -332,8 +373,8 @@ const formatDate = (dateString) => {
 
 .skill-tag {
   font-size: 12px;
-  background-color: #E8F0FE;
-  color: #4A90E2;
+  background-color: #e8f0fe;
+  color: #4a90e2;
   padding: 4px 10px;
   border-radius: 15px;
   margin-right: 8px;

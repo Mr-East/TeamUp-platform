@@ -13,6 +13,16 @@
     <!-- 招队友模式 -->
     <view v-if="activeTab === 'recruit'" class="form-container">
       <view class="form-item">
+        <text class="form-label">竞赛大类</text>
+        <picker mode="selector" :range="competitionCategories" @change="onCategoryChange">
+          <view class="form-input picker-input">
+            <text>{{ recruitForm.competitionCategory || '请选择竞赛大类' }}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+      
+      <view class="form-item">
         <text class="form-label">竞赛名称</text>
         <input type="text" placeholder="请输入竞赛名称" class="form-input" v-model="recruitForm.competitionName" />
       </view>
@@ -92,8 +102,12 @@ import { ref } from 'vue';
 // 激活的标签
 const activeTab = ref('recruit');
 
+// 竞赛大类选项
+const competitionCategories = ['创新创业', '学科竞赛', '技能大赛', '艺术设计', '科研项目'];
+
 // 招队友表单数据
 const recruitForm = ref({
+  competitionCategory: '',
   competitionName: '',
   description: '',
   skills: [],
@@ -107,6 +121,12 @@ const joinForm = ref({
   skills: [],
   teamType: ''
 });
+
+// 选择竞赛大类
+const onCategoryChange = (e) => {
+  const index = e.detail.value;
+  recruitForm.value.competitionCategory = competitionCategories[index];
+};
 
 // 移除技能标签
 const removeSkill = (index) => {
@@ -138,9 +158,56 @@ const uploadCover = () => {
 };
 
 // 发布招募
-const publishRecruit = () => {
-  console.log('发布招募', recruitForm.value);
-  // 实际项目中这里会调用发布接口
+const publishRecruit = async () => {
+  // 表单验证
+  if (!recruitForm.value.competitionCategory) {
+    uni.showToast({ title: '请选择竞赛大类', icon: 'none' });
+    return;
+  }
+  if (!recruitForm.value.competitionName) {
+    uni.showToast({ title: '请输入竞赛名称', icon: 'none' });
+    return;
+  }
+  
+  try {
+    const token = uni.getStorageSync('token');
+    const response = await uni.request({
+      url: 'http://localhost:3000/api/projects',
+      method: 'POST',
+      header: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      data: {
+        title: recruitForm.value.competitionName,
+        description: recruitForm.value.description,
+        competitionName: recruitForm.value.competitionName,
+        competitionType: recruitForm.value.competitionCategory,
+        deadline: recruitForm.value.deadline || '2026-05-31',
+        peopleNeeded: 1,
+        skills: recruitForm.value.skills,
+        coverImage: recruitForm.value.cover
+      }
+    });
+    
+    if (response.data && response.data.success) {
+      uni.showToast({ title: '发布成功', icon: 'success' });
+      // 重置表单
+      recruitForm.value = {
+        competitionCategory: '',
+        competitionName: '',
+        description: '',
+        skills: [],
+        deadline: '',
+        cover: ''
+      };
+    } else {
+      uni.showToast({ title: '发布失败', icon: 'none' });
+    }
+  } catch (error) {
+    console.error('发布错误:', error);
+    uni.showToast({ title: '网络错误', icon: 'none' });
+  }
 };
 
 // 发布求组队信息
@@ -211,6 +278,18 @@ const publishJoin = () => {
   border: none;
   outline: none;
   padding: 5px 0;
+}
+
+.picker-input {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #999;
+}
+
+.picker-arrow {
+  font-size: 12px;
+  color: #999;
 }
 
 .form-textarea {

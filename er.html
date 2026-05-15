@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>Academic Pulse ER 图</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    body {
+      background-color: transparent;
+      margin: 0;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="mermaid">
+%%{init: {'theme': 'default', 'themeVariables': { 'background': 'transparent' }}}%%
+erDiagram
+
+    USER ||--o{ PROJECT : "创建"
+    USER ||--o{ APPLICATION : "申请"
+    USER ||--o{ MESSAGE : "发送"
+    USER ||--o{ COMMENT : "评论"
+    USER ||--o{ NOTIFICATION : "接收"
+    USER ||--o{ TALENTPROFILE : "拥有"
+    USER ||--o{ CHAT : "参与"
+
+    PROJECT ||--o{ APPLICATION : "包含"
+    PROJECT ||--o{ COMMENT : "包含"
+    PROJECT ||--o{ PROJECTMEMBER : "包含"
+
+    CHAT ||--o{ MESSAGE : "包含"
+
+    USER {
+      int id PK
+      string name
+      string email
+      string password
+      string avatar
+      string college
+      string major
+      string skills
+      string bio
+    }
+
+    PROJECT {
+      int id PK
+      string title
+      string description
+      string competitionName
+      string competitionType
+      date deadline
+      int peopleNeeded
+      string skills
+      string status
+    }
+
+    APPLICATION {
+      int id PK
+      int projectId FK
+      int applicantId FK
+      string reasonText
+      string type
+      string status
+      datetime appliedAt
+    }
+
+    MESSAGE {
+      int id PK
+      int chatId FK
+      int senderId FK
+      int receiverId FK
+      string content
+      datetime created_at
+    }
+
+    CHAT {
+      int id PK
+      int user1Id FK
+      int user2Id FK
+      string lastMessage
+      datetime updated_at
+    }
+
+    COMMENT {
+      int id PK
+      int projectId FK
+      int userId FK
+      string content
+      int parentCommentId
+      int likesCount
+    }
+
+    NOTIFICATION {
+      int id PK
+      int userId FK
+      string type
+      string title
+      string content
+      boolean isRead
+      datetime created_at
+    }
+
+    TALENTPROFILE {
+      int id PK
+      int userId FK
+      string targetTrack
+      string skills
+      string bio
+      string status
+    }
+
+    PROJECTMEMBER {
+      int id PK
+      int projectId FK
+      int userId FK
+      datetime joinedAt
+    }
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "default",
+      themeVariables: {
+        background: "transparent",
+        primaryColor: "#4A90E2",
+        edgeLabelBackground: "#ffffff",
+        fontFamily: "Inter, PingFang SC, Arial"
+      }
+    });
+  </script>
+</body>
+</html>

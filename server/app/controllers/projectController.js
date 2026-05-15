@@ -44,8 +44,9 @@ const getUserProjects = async (req, res) => {
 const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const { id: currentUserId } = req.user;
-    const updatedProject = await projectService.updateProject(id, req.body, currentUserId);
+    const { id: currentUserId, email } = req.user;
+    const isAdmin = email && (email.includes('admin') || email === 'admin@example.com');
+    const updatedProject = await projectService.updateProject(id, req.body, currentUserId, isAdmin);
     return successResponse(res, updatedProject, 'Project updated successfully');
   } catch (error) {
     if (error.message === 'Permission denied') {
@@ -58,8 +59,12 @@ const updateProject = async (req, res) => {
 const deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const { id: currentUserId } = req.user;
-    const result = await projectService.deleteProject(id, currentUserId);
+    const { id: currentUserId, email } = req.user;
+    
+    // 检查是否是管理员（email 包含 'admin' 或为特定的管理员 email）
+    const isAdmin = email && (email.includes('admin') || email === 'admin@example.com');
+    
+    const result = await projectService.deleteProject(id, currentUserId, isAdmin);
     return successResponse(res, result, 'Project deleted successfully');
   } catch (error) {
     if (error.message === 'Permission denied') {

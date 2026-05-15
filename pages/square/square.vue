@@ -85,8 +85,12 @@
         </view>
 
         <!-- 加载更多 -->
-        <view class="load-more" @click="loadMore">
-          <text>加载更多</text>
+        <view class="load-more" v-if="recruitmentHasMore">
+          <text v-if="loading.team">加载中...</text>
+          <text v-else @click="loadMore">加载更多</text>
+        </view>
+        <view class="no-more" v-else>
+          <text>已经到底了</text>
         </view>
       </template>
     </view>
@@ -117,6 +121,7 @@
           :major="talent.major"
           :intro="talent.intro"
           :skills="talent.skills"
+          :target-track="talent.targetTrack"
           :competition-types="talent.competitionTypes"
           @invite="inviteTeam"
           @greet="greet"
@@ -124,8 +129,12 @@
         />
 
         <!-- 加载更多 -->
-        <view class="load-more" @click="loadMoreTalent">
-          <text>加载更多</text>
+        <view class="load-more" v-if="talentHasMore">
+          <text v-if="loading.talent">加载中...</text>
+          <text v-else @click="loadMoreTalent">加载更多</text>
+        </view>
+        <view class="no-more" v-else>
+          <text>已经到底了</text>
         </view>
       </template>
     </view>
@@ -191,11 +200,11 @@
             v-for="option in filterOptions" 
             :key="option" 
             class="filter-option"
-            :class="{ active: activeTab === 'team' ? teamFilters[currentFilterType] === option : talentFilters[currentFilterType] === option }"
+            :class="{ active: activeTab === 'team' ? teamFilters[currentFilterType === 'competition' ? 'competitionType' : currentFilterType] === option : talentFilters[currentFilterType] === option }"
             @click="activeTab === 'team' ? selectTeamFilter(option) : selectFilter(option)"
           >
             <text>{{ option }}</text>
-            <text v-if="activeTab === 'team' ? teamFilters[currentFilterType] === option : talentFilters[currentFilterType] === option" class="check-icon">✓</text>
+            <text v-if="activeTab === 'team' ? teamFilters[currentFilterType === 'competition' ? 'competitionType' : currentFilterType] === option : talentFilters[currentFilterType] === option" class="check-icon">✓</text>
           </view>
           <view class="clear-filter" @click="activeTab === 'team' ? clearTeamFilter() : clearFilter()">
             <text>清除筛选</text>
@@ -213,7 +222,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { onLoad, onShow } from '@dcloudio/uni-app';
+import { onLoad, onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app';
 import TalentCard from '../../components/TalentCard/TalentCard.vue';
 
 // 加载状态
@@ -242,8 +251,8 @@ const talentFilters = ref({
 
 // 筛选选项
 const filterOptions = ref([]);
-const gradeOptions = ['2020届', '2021届', '2022届', '2023届', '2024届', '2025届', '2026届'];
-const majorOptions = ['计算机科学', '软件工程', '人工智能', '数字媒体艺术', '市场营销', '电子工程', '机械工程'];
+const gradeOptions = ['大一', '大二', '大三', '大四', '研究生'];
+const majorOptions = ['计算机科学与技术', '软件工程', '人工智能', '数字媒体艺术', '市场营销', '电子工程', '机械工程'];
 const skillOptions = ['Vue', 'React', 'JavaScript', 'TypeScript', 'Python', 'Java', 'Go', 'C++', 'UI设计', '产品经理', '机器学习', '数据分析', 'App开发', '微信小程序'];
 const competitionOptions = ['创新创业', '学科竞赛', '技能大赛', '艺术设计', '科研项目'];
 
@@ -253,26 +262,11 @@ const selectedProject = ref(null);
 const myProjects = ref([]);
 const inviteReason = ref('我看你的技能很适合我们的项目，邀请你加入！');
 
-// 检查登录状态
-onLoad(() => {
-  const token = uni.getStorageSync('token');
-  if (!token) {
-    uni.navigateTo({
-      url: '/pages/login/login'
-    });
-  }
-});
-
-// 页面显示时获取数据
-onShow(async () => {
-  const token = uni.getStorageSync('token');
-  if (token) {
-    await Promise.all([
-      fetchTeamRecruitments(),
-      fetchTalentList(),
-      fetchMyProjects()
-    ]);
-  }
+// 当前用户信息
+const currentUser = ref({
+  id: null,
+  name: '',
+  avatar: ''
 });
 
 // 标签状态
@@ -280,9 +274,13 @@ const activeTab = ref('team');
 
 // 组队广场数据
 const recruitments = ref([]);
+const recruitmentPage = ref(1);
+const recruitmentHasMore = ref(true);
 
 // 人才广场数据
 const talents = ref([]);
+const talentPage = ref(1);
+const talentHasMore = ref(true);
 
 // 组队广场筛选
 const teamFilters = ref({
@@ -291,13 +289,88 @@ const teamFilters = ref({
   deadline: ''
 });
 
+// 获取用户信息
+const getUserInfo = async () => {
+  try {
+    const token = uni.getStorageSync('token');
+    if (!token) return;
+    
+    const response = await uni.request({
+      url: 'http://localhost:3000/api/users/me',
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (response.data && response.data.success) {
+      const user = response.data.data;
+      currentUser.value = {
+        id: user.id,
+        name: user.name || user.username || '',
+        avatar: user.avatar || ''
+      };
+    }
+  } catch (err) {
+    console.error('获取用户信息错误:', err);
+  }
+};
+
+// 检查登录状态
+onLoad(async () => {
+  const token = uni.getStorageSync('token');
+  if (!token) {
+    uni.navigateTo({
+      url: '/pages/login/login'
+    });
+  } else {
+    await getUserInfo();
+  }
+});
+
+// 页面显示时获取数据
+onShow(async () => {
+  const token = uni.getStorageSync('token');
+  if (token) {
+    await Promise.all([
+      getUserInfo(),
+      fetchTeamRecruitments(),
+      fetchTalentList(),
+      fetchMyProjects()
+    ]);
+  }
+});
+
+// 下拉刷新
+onPullDownRefresh(async () => {
+  if (activeTab.value === 'team') {
+    recruitmentPage.value = 1;
+    recruitmentHasMore.value = true;
+    await fetchTeamRecruitments(false);
+  } else {
+    talentPage.value = 1;
+    talentHasMore.value = true;
+    await fetchTalentList(false);
+  }
+  uni.stopPullDownRefresh();
+});
+
+// 触底加载更多
+onReachBottom(() => {
+  if (activeTab.value === 'team') {
+    loadMore();
+  } else {
+    loadMoreTalent();
+  }
+});
+
 // 切换标签
 const switchTab = (tab) => {
   activeTab.value = tab;
 };
 
 // 获取组队广场数据
-const fetchTeamRecruitments = async () => {
+const fetchTeamRecruitments = async (isLoadMore = false) => {
   try {
     loading.value.team = true;
     error.value.team = '';
@@ -310,6 +383,13 @@ const fetchTeamRecruitments = async () => {
     if (teamFilters.value.competitionType) params.push(`competitionType=${encodeURIComponent(teamFilters.value.competitionType)}`);
     if (teamFilters.value.skill) params.push(`skill=${encodeURIComponent(teamFilters.value.skill)}`);
     if (teamFilters.value.deadline) params.push(`deadline=${encodeURIComponent(teamFilters.value.deadline)}`);
+    
+    // 添加分页参数
+    const page = isLoadMore ? recruitmentPage.value + 1 : 1;
+    const limit = 10;
+    params.push(`page=${page}`);
+    params.push(`limit=${limit}`);
+    
     if (params.length > 0) queryParams = '?' + params.join('&');
     
     const response = await uni.request({
@@ -322,7 +402,7 @@ const fetchTeamRecruitments = async () => {
     
     if (response.data && response.data.success) {
       const projectList = response.data.data.projects || [];
-      recruitments.value = projectList.map(project => ({
+      const newRecruitments = projectList.map(project => ({
         id: project.id,
         title: project.title,
         name: project.competitionName,
@@ -339,6 +419,17 @@ const fetchTeamRecruitments = async () => {
         members: project.members || [],
         comments: project.comments || []
       }));
+      
+      if (isLoadMore) {
+        recruitments.value = [...recruitments.value, ...newRecruitments];
+        recruitmentPage.value = page;
+      } else {
+        recruitments.value = newRecruitments;
+        recruitmentPage.value = 1;
+      }
+      
+      // 判断是否还有更多数据
+      recruitmentHasMore.value = newRecruitments.length === limit && recruitments.value.length > 0;
     } else {
       error.value.team = '获取组队广场数据失败';
     }
@@ -351,7 +442,7 @@ const fetchTeamRecruitments = async () => {
 };
 
 // 获取人才广场数据
-const fetchTalentList = async () => {
+const fetchTalentList = async (isLoadMore = false) => {
   try {
     loading.value.talent = true;
     error.value.talent = '';
@@ -364,6 +455,13 @@ const fetchTalentList = async () => {
     if (talentFilters.value.grade) params.push(`grade=${encodeURIComponent(talentFilters.value.grade)}`);
     if (talentFilters.value.major) params.push(`major=${encodeURIComponent(talentFilters.value.major)}`);
     if (talentFilters.value.skill) params.push(`skill=${encodeURIComponent(talentFilters.value.skill)}`);
+    
+    // 添加分页参数
+    const page = isLoadMore ? talentPage.value + 1 : 1;
+    const limit = 10;
+    params.push(`page=${page}`);
+    params.push(`limit=${limit}`);
+    
     if (params.length > 0) queryParams = '?' + params.join('&');
     
     const url = `http://localhost:3000/api/users/talents${queryParams}`;
@@ -377,15 +475,27 @@ const fetchTalentList = async () => {
     });
     
     if (response.data && response.data.success) {
-      talents.value = response.data.data.map(user => ({
+      const newTalents = response.data.data.map(user => ({
         id: user.id,
         name: user.name,
         major: `${user.major}${user.grade ? ' · ' + user.grade : ''}`,
         intro: user.bio || '暂无简介',
         skills: user.skills || [],
+        targetTrack: user.targetTrack || '',
         competitionTypes: user.competitionTypes || [],
         avatar: user.avatar || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square'
       }));
+      
+      if (isLoadMore) {
+        talents.value = [...talents.value, ...newTalents];
+        talentPage.value = page;
+      } else {
+        talents.value = newTalents;
+        talentPage.value = 1;
+      }
+      
+      // 判断是否还有更多数据
+      talentHasMore.value = newTalents.length === limit && talents.value.length > 0;
     } else {
       error.value.talent = '获取人才广场数据失败';
     }
@@ -410,7 +520,9 @@ const fetchMyProjects = async () => {
     });
     
     if (response.data && response.data.success) {
-      myProjects.value = response.data.data || [];
+      // 过滤掉已删除的项目（status = 'deleted'）
+      const projects = response.data.data || [];
+      myProjects.value = projects.filter(project => project.status !== 'deleted');
     }
   } catch (err) {
     console.error('获取我的项目错误:', err);
@@ -437,6 +549,15 @@ const viewProfile = (id) => {
 
 // 邀请组队
 const inviteTeam = async (id) => {
+  // 如果是本人，不允许邀请
+  if (currentUser.value.id === id) {
+    uni.showToast({
+      title: '不能邀请自己',
+      icon: 'none'
+    });
+    return;
+  }
+  
   currentTalentId.value = id;
   selectedProject.value = null;
   inviteReason.value = '我看你的技能很适合我们的项目，邀请你加入！';
@@ -505,14 +626,67 @@ const closeInviteModal = () => {
   selectedProject.value = null;
 };
 
-// 打个招呼 - 跳转私信
+// 打个招呼 - 先获取聊天ID，再跳转到聊天页面
 const greet = async (id) => {
+  // 如果是本人，不允许打个招呼
+  if (currentUser.value.id === id) {
+    uni.showToast({
+      title: '不能对自己打招呼',
+      icon: 'none'
+    });
+    return;
+  }
+  
   const talent = talents.value.find(t => t.id === id);
   if (!talent) return;
   
-  uni.navigateTo({
-    url: `/pages/chat/chat?otherUserId=${id}&name=${encodeURIComponent(talent.name)}&avatar=${encodeURIComponent(talent.avatar || '')}`
-  });
+  try {
+    const token = uni.getStorageSync('token');
+    if (!token) {
+      uni.navigateTo({
+        url: `/pages/chat/chat?otherUserId=${id}&name=${encodeURIComponent(talent.name)}&avatar=${encodeURIComponent(talent.avatar || '')}`
+      });
+      return;
+    }
+    
+    // 尝试获取与该用户的聊天记录
+    const response = await uni.request({
+      url: `http://localhost:3000/api/messages/chats`,
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (response.data && response.data.success) {
+      const chats = response.data.data || [];
+      // 查找与该用户的聊天
+      const chat = chats.find(c => c.otherUser && c.otherUser.id === id);
+      
+      if (chat) {
+        // 如果有聊天记录，传递 chatId
+        uni.navigateTo({
+          url: `/pages/chat/chat?chatId=${chat.id}&otherUserId=${id}&name=${encodeURIComponent(talent.name)}&avatar=${encodeURIComponent(talent.avatar || '')}`
+        });
+      } else {
+        // 如果没有聊天记录，直接跳转
+        uni.navigateTo({
+          url: `/pages/chat/chat?otherUserId=${id}&name=${encodeURIComponent(talent.name)}&avatar=${encodeURIComponent(talent.avatar || '')}`
+        });
+      }
+    } else {
+      // 如果获取聊天列表失败，直接跳转
+      uni.navigateTo({
+        url: `/pages/chat/chat?otherUserId=${id}&name=${encodeURIComponent(talent.name)}&avatar=${encodeURIComponent(talent.avatar || '')}`
+      });
+    }
+  } catch (err) {
+    console.error('获取聊天列表错误:', err);
+    // 错误时直接跳转
+    uni.navigateTo({
+      url: `/pages/chat/chat?otherUserId=${id}&name=${encodeURIComponent(talent.name)}&avatar=${encodeURIComponent(talent.avatar || '')}`
+    });
+  }
 };
 
 // 切换人才筛选
@@ -532,16 +706,28 @@ const toggleTalentFilter = (type) => {
 
 // 选择筛选
 const selectFilter = (option) => {
-  talentFilters.value[currentFilterType.value] = option;
-  closeFilterModal();
-  fetchTalentList();
+  if (activeTab.value === 'team') {
+    teamFilters.value[currentFilterType.value === 'competition' ? 'competitionType' : currentFilterType.value] = option;
+    closeFilterModal();
+    fetchTeamRecruitments();
+  } else {
+    talentFilters.value[currentFilterType.value] = option;
+    closeFilterModal();
+    fetchTalentList();
+  }
 };
 
 // 清除筛选
 const clearFilter = () => {
-  talentFilters.value[currentFilterType.value] = '';
-  closeFilterModal();
-  fetchTalentList();
+  if (activeTab.value === 'team') {
+    teamFilters.value[currentFilterType.value === 'competition' ? 'competitionType' : currentFilterType.value] = '';
+    closeFilterModal();
+    fetchTeamRecruitments();
+  } else {
+    talentFilters.value[currentFilterType.value] = '';
+    closeFilterModal();
+    fetchTalentList();
+  }
 };
 
 // 关闭筛选弹窗
@@ -591,13 +777,15 @@ const clearTeamFilter = () => {
 };
 
 // 加载更多组队信息
-const loadMore = () => {
-  console.log('加载更多组队信息');
+const loadMore = async () => {
+  if (loading.value.team || !recruitmentHasMore.value) return;
+  await fetchTeamRecruitments(true);
 };
 
 // 加载更多人才信息
-const loadMoreTalent = () => {
-  console.log('加载更多人才信息');
+const loadMoreTalent = async () => {
+  if (loading.value.talent || !talentHasMore.value) return;
+  await fetchTalentList(true);
 };
 
 // 跳转到发布页面
@@ -804,6 +992,13 @@ const formatDate = (dateString) => {
   padding: 15px;
   font-size: 14px;
   color: #4A90E2;
+}
+
+.no-more {
+  text-align: center;
+  padding: 15px;
+  font-size: 14px;
+  color: #9CA3AF;
 }
 
 .loading-state {

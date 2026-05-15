@@ -3,7 +3,13 @@ const { successResponse, errorResponse } = require('../utils/response');
 
 const getCompetitions = async (req, res) => {
   try {
-    const competitions = await competitionService.getCompetitions();
+    const { page = 1, limit = 10, name, type } = req.query;
+    const filters = {};
+    
+    if (name) filters.name = name;
+    if (type) filters.type = type;
+    
+    const competitions = await competitionService.getCompetitions(filters, parseInt(page), parseInt(limit));
     return successResponse(res, competitions, 'Competitions found successfully');
   } catch (error) {
     return errorResponse(res, error.message, 400);

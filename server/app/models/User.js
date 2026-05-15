@@ -69,4 +69,10 @@ const User = sequelize.define('User', {
   updatedAt: 'updated_at'
 });
 
+// 关联关系
+User.hasOne(require('./TalentProfile'), {
+  foreignKey: 'userId',
+  as: 'talentProfile'
+});
+
 module.exports = User;

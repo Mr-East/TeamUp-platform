@@ -2,7 +2,7 @@
   <view class="login-container">
     <view class="login-card">
       <view class="logo">
-        <image src="/static/logo.png" mode="aspectFit" class="logo-img" />
+        <image src="/static/tabbar/logo.png" mode="aspectFit" class="logo-img" />
         <text class="app-name">Academic Pulse</text>
       </view>
       
@@ -23,6 +23,7 @@
         <input 
           v-model="formData.password" 
           type="password" 
+          password="true" 
           placeholder="请输入密码" 
           class="input"
         />

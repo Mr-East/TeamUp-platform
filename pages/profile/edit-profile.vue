@@ -52,6 +52,16 @@
             <input type="text" v-model="profileForm.major" class="field-input" placeholder="请输入您的专业" />
           </view>
         </view>
+        <view class="divider"></view>
+        <!-- 年级选择 -->
+        <view class="form-item" @click="selectGrade">
+          <text class="field-icon">📅</text>
+          <view class="field-content">
+            <text class="field-label">年级</text>
+            <text class="field-value">{{ profileForm.grade || '请选择年级' }}</text>
+          </view>
+          <text class="chevron-icon">›</text>
+        </view>
       </view>
 
       <!-- 技能标签区域 -->
@@ -99,9 +109,12 @@ const profileForm = ref({
   avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square',
   college: '默认学院',
   major: '默认专业',
+  grade: '',
   skills: [],
   bio: ''
 });
+
+const gradeOptions = ['大一', '大二', '大三', '大四', '研究生'];
 
 const showSuccess = ref(false);
 const loading = ref(true);
@@ -140,6 +153,7 @@ const fetchUserInfo = async () => {
         avatar: response.data.data.avatar || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20male&image_size=square',
         college: response.data.data.college || '计算机学院',
         major: response.data.data.major || 'Computer Science',
+        grade: response.data.data.grade || '',
         skills: response.data.data.skills || ['Vue', 'JavaScript', 'Java', 'Python'],
         bio: response.data.data.bio || 'Finalist at the 2023 Global Hackathon. Passionate about building scalable cloud solutions and intuitive user interfaces. Looking for a hardware enthusiast for the upcoming Robotics Challenge.'
       };
@@ -154,6 +168,7 @@ const fetchUserInfo = async () => {
         avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20male&image_size=square',
         college: '计算机学院',
         major: 'Computer Science',
+        grade: '',
         skills: ['Vue', 'JavaScript', 'Java', 'Python'],
         bio: 'Finalist at the 2023 Global Hackathon. Passionate about building scalable cloud solutions and intuitive user interfaces. Looking for a hardware enthusiast for the upcoming Robotics Challenge.'
       };
@@ -170,6 +185,7 @@ const fetchUserInfo = async () => {
       avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square',
       college: '默认学院',
       major: '默认专业',
+      grade: '',
       skills: [],
       bio: ''
     };
@@ -211,6 +227,7 @@ const saveProfile = async () => {
         avatar: profileForm.value.avatar,
         college: profileForm.value.college,
         major: profileForm.value.major,
+        grade: profileForm.value.grade,
         skills: profileForm.value.skills,
         bio: profileForm.value.bio
       }
@@ -333,6 +350,16 @@ const uploadAvatar = async (tempFilePath) => {
 // 选择学院
 const selectSchool = () => {
   console.log('选择学院');
+};
+
+// 选择年级
+const selectGrade = () => {
+  uni.showActionSheet({
+    itemList: gradeOptions,
+    success: (res) => {
+      profileForm.value.grade = gradeOptions[res.tapIndex];
+    }
+  });
 };
 
 // 添加技能标签

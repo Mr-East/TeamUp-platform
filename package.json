@@ -4,6 +4,10 @@
   "description": "",
   "main": "main.js",
   "scripts": {
+    "dev:h5": "uni",
+    "build:h5": "uni build",
+    "dev:mp-weixin": "uni -p mp-weixin",
+    "build:mp-weixin": "uni build -p mp-weixin",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,5 +20,12 @@
   "bugs": {
     "url": "https://github.com/Mr-East/TeamUp-platform/issues"
   },
-  "homepage": "https://github.com/Mr-East/TeamUp-platform#readme"
+  "homepage": "https://github.com/Mr-East/TeamUp-platform#readme",
+  "devDependencies": {
+    "@dcloudio/uni-app-plus": "^2.0.2-5000720260410001",
+    "@dcloudio/uni-cli-shared": "^2.0.2-5000720260410001",
+    "@dcloudio/uni-mp-weixin": "^2.0.2-5000720260410001",
+    "@dcloudio/vite-plugin-uni": "^3.0.0-alpha-3000020210521001",
+    "sass": "^1.99.0"
+  }
 }

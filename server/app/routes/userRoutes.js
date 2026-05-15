@@ -23,11 +23,16 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+router.get('/', userController.getUsers);
 router.get('/me', authMiddleware, userController.getCurrentUser);
 router.get('/talents', authMiddleware, userController.getTalents);
 router.get('/:id', userController.getUserById);
 router.put('/:id', authMiddleware, userController.updateUser);
 router.get('/:id/posts', userController.getUserPosts);
 router.post('/avatar', authMiddleware, upload.single('avatar'), userController.uploadAvatar);
+router.patch('/projects/:projectId/toggle-status', authMiddleware, userController.toggleProjectStatus);
+router.patch('/talent-profiles/:talentProfileId/toggle-status', authMiddleware, userController.toggleTalentProfileStatus);
+router.delete('/projects/:projectId', authMiddleware, userController.deleteProject);
+router.delete('/talent-profiles/:talentProfileId', authMiddleware, userController.deleteTalentProfile);
 
 module.exports = router;

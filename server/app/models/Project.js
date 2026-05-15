@@ -50,7 +50,7 @@ const Project = sequelize.define('Project', {
     field: 'cover_image'
   },
   status: {
-    type: DataTypes.ENUM('active', 'closed'),
+    type: DataTypes.ENUM('active', 'closed', 'deleted'),
     defaultValue: 'active'
   },
   createdBy: {

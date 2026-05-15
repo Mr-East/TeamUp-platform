@@ -1,11 +1,25 @@
 const notificationService = require('../services/notificationService');
 const { successResponse, errorResponse } = require('../utils/response');
+const logger = require('../utils/logger');
 
 const getMyNotifications = async (req, res) => {
   try {
+    logger.info('Getting notifications for user:', req.user?.id);
     const { id } = req.user;
-    const notifications = await notificationService.getMyNotifications(id);
-    return successResponse(res, notifications, 'Notifications found successfully');
+    const { page = 1, limit = 20, unreadOnly = false } = req.query;
+    const result = await notificationService.getMyNotifications(id, { page, limit, unreadOnly: unreadOnly === 'true' });
+    return successResponse(res, result, 'Notifications found successfully');
+  } catch (error) {
+    logger.error('Error getting notifications:', error);
+    return errorResponse(res, error.message, 400);
+  }
+};
+
+const getUnreadCount = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const count = await notificationService.getUnreadCount(id);
+    return successResponse(res, { unreadCount: count }, 'Unread count retrieved');
   } catch (error) {
     return errorResponse(res, error.message, 400);
   }
@@ -51,6 +65,7 @@ const deleteNotification = async (req, res) => {
 
 module.exports = {
   getMyNotifications,
+  getUnreadCount,
   markNotificationAsRead,
   markAllNotificationsAsRead,
   deleteNotification

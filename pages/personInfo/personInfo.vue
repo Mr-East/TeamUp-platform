@@ -27,6 +27,7 @@
           </view>
           <text class="college">{{ userInfo.college }}</text>
           <text class="major" v-if="userInfo.major">{{ userInfo.major }}</text>
+          <text class="grade" v-if="userInfo.grade">{{ userInfo.grade }}</text>
         </view>
       </view>
       
@@ -97,6 +98,7 @@ const userInfo = ref({
   avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square',
   college: '默认学院',
   major: '',
+  grade: '',
   bio: '',
   skills: [],
   verified: false,
@@ -139,6 +141,7 @@ const fetchUserInfo = async (userId) => {
     if (response.data && response.data.success) {
       userInfo.value = {
         ...response.data.data,
+        grade: response.data.data.grade || '',
         skills: response.data.data.skills || [],
         projects: response.data.data.projects || []
       };
@@ -154,6 +157,7 @@ const fetchUserInfo = async (userId) => {
         avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square',
         college: '默认学院',
         major: '',
+        grade: '',
         bio: '',
         skills: [],
         verified: false,
@@ -172,6 +176,7 @@ const fetchUserInfo = async (userId) => {
       avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square',
       college: '默认学院',
       major: '',
+      grade: '',
       bio: '',
       skills: [],
       verified: false,
@@ -374,6 +379,12 @@ const shareUser = () => {
 .major {
   font-size: 12px;
   opacity: 0.8;
+}
+
+.grade {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 4px;
 }
 
 /* 操作按钮 */

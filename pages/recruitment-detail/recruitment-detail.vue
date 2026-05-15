@@ -84,7 +84,7 @@
       <!-- 项目简介 -->
       <view class="section">
         <text class="section-title">项目简介</text>
-        <text class="section-content">{{ recruitment.description || '暂无描述' }}</text>
+        <view class="section-content">{{ recruitment.description || '暂无描述' }}</view>
       </view>
 
       <!-- 所需技能 -->
@@ -109,7 +109,7 @@
           <image :src="comment.user?.avatar || defaultAvatar" mode="aspectFill" class="comment-avatar" @click="goToMemberInfo(comment.userId)" />
           <view class="comment-content">
             <view class="comment-header">
-              <text class="comment-name">{{ comment.user?.name || '匿名用户' }}</text>
+              <text class="comment-name">{{ comment.user.name || '匿名用户' }}</text>
               <text class="comment-time">{{ formatCommentTime(comment.created_at) }}</text>
             </view>
             <text class="comment-text">{{ comment.content }}</text>
@@ -123,8 +123,8 @@
                   <image :src="reply.user?.avatar || defaultAvatar" mode="aspectFill" class="reply-avatar" @click="goToMemberInfo(reply.userId)" />
                   <view class="reply-content">
                     <view class="reply-header">
-                      <text class="reply-name">{{ reply.user?.name || '匿名用户' }}</text>
-                      <text v-if="reply.parent && reply.parent.user" class="reply-target">→ 回复 {{ reply.parent.user.name }}</text>
+                      <text class="reply-name">{{ reply.user.name || '匿名用户' }}</text>
+                      <text v-if="reply.parent && reply.parent.user && reply.parent.user.name" class="reply-target">→ 回复 {{ reply.parent.user.name }}</text>
                       <text class="reply-time">{{ formatCommentTime(reply.created_at) }}</text>
                     </view>
                     <text class="reply-text">{{ reply.content }}</text>
@@ -338,14 +338,147 @@ const fetchJoinStatus = async () => {
 const fetchComments = async () => {
   try {
     const token = uni.getStorageSync('token');
+    console.log('开始获取评论，项目ID:', recruitmentId.value);
+    console.log('Token:', token ? '存在' : '不存在');
     const response = await uni.request({
       url: `http://localhost:3000/api/projects/${recruitmentId.value}/comments`,
       method: 'GET',
       header: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
 
+    console.log('评论响应:', response);
+
     if (response.data && response.data.success) {
-      comments.value = response.data.data || [];
+      // 处理评论数据，确保回复结构正确
+      const commentsData = response.data.data || [];
+      console.log('原始评论数据长度:', commentsData.length);
+      console.log('原始评论数据:', commentsData);
+      // 检查第一条评论的用户信息
+      if (commentsData.length > 0) {
+        console.log('第一条评论的用户信息:', commentsData[0].user);
+        if (commentsData[0].replies && commentsData[0].replies.length > 0) {
+          console.log('第一条回复的用户信息:', commentsData[0].replies[0].user);
+        }
+      }
+      
+      // 处理单个评论的用户信息
+      const processCommentUser = (comment) => {
+        console.log('处理评论用户信息:', comment);
+        // 检查是否有User字段（大写U），如果有则转换为user字段（小写u）
+        if (comment.User && !comment.user) {
+          console.log('发现User字段，转换为user字段:', comment.User);
+          comment.user = comment.User;
+        }
+        // 确保评论用户信息存在
+        if (!comment.user) {
+          console.log('评论无用户信息，设置默认值');
+          comment.user = { name: '匿名用户', avatar: defaultAvatar };
+          comment.userId = null;
+        } else {
+          console.log('评论用户信息存在:', comment.user);
+          // 检查是否有username字段，如果有则使用username
+          if (comment.user.username) {
+            console.log('使用username字段:', comment.user.username);
+            comment.user.name = comment.user.username;
+          } else if (comment.user.name) {
+            console.log('使用name字段:', comment.user.name);
+          } else {
+            console.log('用户名称不存在，设置默认值');
+            comment.user.name = '匿名用户';
+          }
+          if (!comment.user.avatar) {
+            console.log('评论用户无头像，设置默认值');
+            comment.user.avatar = defaultAvatar;
+          }
+          // 确保 userId 存在
+          if (!comment.userId) {
+            console.log('评论无userId，从user.id设置');
+            comment.userId = comment.user.id;
+          }
+        }
+        // 确保评论ID存在
+        if (!comment.id) {
+          comment.id = `comment-${Date.now()}-${Math.random()}`;
+        }
+        // 确保父评论信息存在
+        if (comment.parent) {
+          // 检查父评论是否有User字段
+          if (comment.parent.User && !comment.parent.user) {
+            console.log('父评论发现User字段，转换为user字段:', comment.parent.User);
+            comment.parent.user = comment.parent.User;
+          }
+          if (!comment.parent.user) {
+            comment.parent.user = { name: '匿名用户' };
+          } else if (!comment.parent.user.name) {
+            // 检查父评论用户是否有username字段
+            if (comment.parent.user.username) {
+              comment.parent.user.name = comment.parent.user.username;
+            } else {
+              comment.parent.user.name = '匿名用户';
+            }
+          }
+        }
+        return comment;
+      };
+      
+      // 处理评论数据，将所有回复扁平化为二级评论
+      const processComments = (commentList) => {
+        return commentList.map(comment => {
+          console.log('处理评论:', comment.id, comment.content);
+          console.log('评论用户信息:', comment.user);
+          
+          // 处理当前评论
+          comment = processCommentUser(comment);
+          
+          // 确保回复数组存在
+          if (!comment.replies) {
+            comment.replies = [];
+          } else {
+            console.log('评论有回复，数量:', comment.replies.length);
+            
+            // 扁平化回复结构
+            const flattenedReplies = [];
+            
+            // 递归收集所有回复，不管嵌套层级
+            const collectReplies = (replies) => {
+              replies.forEach(reply => {
+                // 处理回复的用户信息
+                reply = processCommentUser(reply);
+                flattenedReplies.push(reply);
+                // 如果回复还有回复，继续收集
+                if (reply.replies && reply.replies.length > 0) {
+                  collectReplies(reply.replies);
+                }
+              });
+            };
+            
+            // 收集所有回复
+            collectReplies(comment.replies);
+            
+            // 用扁平化的回复列表替换原有的嵌套回复
+            comment.replies = flattenedReplies;
+            console.log('扁平化后回复数量:', comment.replies.length);
+          }
+          
+          return comment;
+        });
+      };
+      
+      const processedComments = processComments(commentsData);
+      console.log('处理后评论数据长度:', processedComments.length);
+      console.log('处理后评论数据:', processedComments);
+      // 检查处理后第一条评论的用户信息
+      if (processedComments.length > 0) {
+        console.log('处理后第一条评论的用户信息:', processedComments[0].user);
+        if (processedComments[0].replies && processedComments[0].replies.length > 0) {
+          console.log('处理后第一条回复的用户信息:', processedComments[0].replies[0].user);
+        }
+      }
+      // 直接更新评论列表，不需要setTimeout
+      comments.value = processedComments;
+      console.log('评论列表已更新:', comments.value.length);
+    } else {
+      console.log('获取评论失败:', response.data?.message);
     }
   } catch (err) {
     console.error('获取评论错误:', err);
@@ -401,6 +534,9 @@ const submitReply = async () => {
       return;
     }
 
+    console.log('回复评论ID:', replyToComment.value.id);
+    console.log('回复内容:', replyContent.value.trim());
+
     const response = await uni.request({
       url: `http://localhost:3000/api/projects/${recruitmentId.value}/comments`,
       method: 'POST',
@@ -414,11 +550,21 @@ const submitReply = async () => {
       }
     });
 
+    console.log('回复响应:', response.data);
+
     if (response.data && response.data.success) {
       uni.showToast({ title: '回复成功', icon: 'success' });
       replyContent.value = '';
       replyToComment.value = null;
+      console.log('开始重新获取评论');
+      // 强制重新获取评论
       await fetchComments();
+      console.log('重新获取评论完成');
+      // 再次获取评论，确保数据更新
+      setTimeout(async () => {
+        console.log('再次获取评论以确保数据更新');
+        await fetchComments();
+      }, 500);
     } else {
       uni.showToast({ title: response.data?.message || '回复失败', icon: 'none' });
     }

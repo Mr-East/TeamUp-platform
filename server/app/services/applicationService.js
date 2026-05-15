@@ -2,18 +2,19 @@ const Application = require('../models/Application');
 const Project = require('../models/Project');
 const ProjectMember = require('../models/ProjectMember');
 const User = require('../models/User');
-const Notification = require('../models/Notification');
+const notificationService = require('./notificationService');
+const logger = require('../utils/logger');
 
 const createApplication = async (projectId, applicantId, reasonText, type = 'apply', inviterId = null) => {
   // 检查项目是否存在
   const project = await Project.findByPk(projectId);
   if (!project) {
-    throw new Error('Project not found');
+    throw new Error('项目不存在');
   }
   
   // 检查项目状态
   if (project.status !== 'active') {
-    throw new Error('Project is closed');
+    throw new Error('项目已关闭');
   }
   
   // 检查是否已经申请过
@@ -21,7 +22,7 @@ const createApplication = async (projectId, applicantId, reasonText, type = 'app
     where: { projectId, applicantId }
   });
   if (existingApplication) {
-    throw new Error('Application already submitted');
+    throw new Error('已经邀请过了');
   }
   
   // 检查是否已经是项目成员
@@ -29,46 +30,51 @@ const createApplication = async (projectId, applicantId, reasonText, type = 'app
     where: { projectId, userId: applicantId }
   });
   if (existingMember) {
-    throw new Error('You are already a member of this project');
+    throw new Error('已在队伍中');
+  }
+  
+  // 检查队伍是否已满
+  const currentMemberCount = await ProjectMember.count({
+    where: { projectId }
+  });
+  // +1 是因为项目创建者也算成员
+  if (currentMemberCount + 1 >= project.peopleNeeded) {
+    throw new Error('队伍已满');
   }
   
   // 如果是邀请类型，检查权限
   if (type === 'invite' && inviterId) {
-    if (project.createdBy !== inviterId) {
-      throw new Error('Permission denied: only project creator can invite');
+    if (Number(project.createdBy) !== Number(inviterId)) {
+      throw new Error('没有权限，只有项目创建者可以邀请');
     }
-    const invitedUser = await User.findByPk(applicantId);
+    const invitedUser = await User.findByPk(Number(applicantId));
     if (!invitedUser) {
-      throw new Error('User not found');
+      throw new Error('用户不存在');
     }
   }
   
   // 创建申请
   const application = await Application.create({
-    projectId,
-    applicantId,
+    projectId: Number(projectId),
+    applicantId: Number(applicantId),
     reasonText,
     type,
-    inviterId: type === 'invite' ? inviterId : null
+    inviterId: type === 'invite' ? Number(inviterId) : null
   });
-  
-  // 发送通知
+
+  // 发送通知（通过notificationService实现WebSocket实时推送）
   if (type === 'apply') {
-    await Notification.create({
-      receiverId: project.createdBy,
-      type: 'application',
-      title: 'New application received',
-      content: `You have a new application from ${(await User.findByPk(applicantId)).name} for your project ${project.title}`
-    });
+    const applicant = await User.findByPk(applicantId);
+    logger.info(`Sending application notification: applicantId=${applicantId}, projectId=${projectId}, projectTitle=${project.title}`);
+    await notificationService.notifyApplication(project.createdBy, applicantId, projectId, project.title, 'pending');
+    logger.info('Application notification sent successfully');
   } else {
-    await Notification.create({
-      receiverId: applicantId,
-      type: 'invitation',
-      title: 'New team invitation',
-      content: `${(await User.findByPk(inviterId)).name} invited you to join their project ${project.title}`
-    });
+    const inviter = await User.findByPk(inviterId);
+    logger.info(`Sending invite notification: applicantId=${applicantId}, inviterId=${inviterId}, projectId=${projectId}`);
+    await notificationService.notifyInvite(applicantId, inviterId, projectId, project.title, 'pending');
+    logger.info('Invite notification sent successfully');
   }
-  
+
   return application;
 };
 
@@ -93,12 +99,12 @@ const getProjectApplications = async (projectId, userId) => {
   // 检查项目是否存在
   const project = await Project.findByPk(projectId);
   if (!project) {
-    throw new Error('Project not found');
+    throw new Error('项目不存在');
   }
   
   // 检查权限
-  if (project.createdBy !== userId) {
-    throw new Error('Permission denied');
+  if (Number(project.createdBy) !== Number(userId)) {
+    throw new Error('没有权限');
   }
   
   const applications = await Application.findAll({
@@ -115,30 +121,37 @@ const getProjectApplications = async (projectId, userId) => {
 };
 
 const approveApplication = async (applicationId, userId) => {
+  logger.info(`Approving application: applicationId=${applicationId}, userId=${userId}`);
+  
   const application = await Application.findByPk(applicationId, {
     include: [{
       model: Project
     }]
   });
-  
+
   if (!application) {
-    throw new Error('Application not found');
+    logger.error(`Application not found: applicationId=${applicationId}`);
+    throw new Error('申请不存在');
   }
-  
+
+  logger.info(`Application found: projectId=${application.projectId}, applicantId=${application.applicantId}, status=${application.status}`);
+
   // 检查权限
-  if (application.Project.createdBy !== userId) {
-    throw new Error('Permission denied');
+  if (Number(application.Project.createdBy) !== Number(userId)) {
+    logger.error(`Permission denied: application creator=${application.Project.createdBy}, current user=${userId}`);
+    throw new Error('没有权限');
   }
-  
+
   // 检查申请状态
   if (application.status !== 'pending') {
-    throw new Error('Application already processed');
+    logger.error(`Application already processed: status=${application.status}`);
+    throw new Error('申请已处理');
   }
-  
+
   // 更新申请状态
   application.status = 'accepted';
   await application.save();
-  
+
   // 添加为项目成员
   await ProjectMember.create({
     projectId: application.projectId,
@@ -146,51 +159,62 @@ const approveApplication = async (applicationId, userId) => {
     role: 'member',
     status: 'accepted'
   });
-  
-  // 发送通知给申请人
-  await Notification.create({
-    receiverId: application.applicantId,
-    type: 'approval',
-    title: 'Application approved',
-    content: `Your application for project ${application.Project.title} has been approved`
-  });
-  
+
+  // 发送通知给申请人（通过notificationService实现WebSocket实时推送）
+  if (application.type === 'invite') {
+    logger.info(`Sending invite accepted notification: applicantId=${application.applicantId}, projectId=${application.projectId}`);
+    await notificationService.notifyInvite(application.applicantId, application.inviterId, application.projectId, application.Project.title, 'accepted');
+  } else {
+    logger.info(`Sending application approved notification: applicantId=${application.applicantId}, projectId=${application.projectId}`);
+    await notificationService.notifyApplication(application.applicantId, application.Project.createdBy, application.projectId, application.Project.title, 'approved');
+  }
+
+  logger.info('Application approved successfully');
   return application;
 };
 
 const rejectApplication = async (applicationId, userId) => {
+  logger.info(`Rejecting application: applicationId=${applicationId}, userId=${userId}`);
+  
   const application = await Application.findByPk(applicationId, {
     include: [{
       model: Project
     }]
   });
-  
+
   if (!application) {
-    throw new Error('Application not found');
+    logger.error(`Application not found: applicationId=${applicationId}`);
+    throw new Error('申请不存在');
   }
-  
+
+  logger.info(`Application found: projectId=${application.projectId}, applicantId=${application.applicantId}, status=${application.status}`);
+
   // 检查权限
-  if (application.Project.createdBy !== userId) {
-    throw new Error('Permission denied');
+  if (Number(application.Project.createdBy) !== Number(userId)) {
+    logger.error(`Permission denied: application creator=${application.Project.createdBy}, current user=${userId}`);
+    throw new Error('没有权限');
   }
-  
+
   // 检查申请状态
   if (application.status !== 'pending') {
-    throw new Error('Application already processed');
+    logger.error(`Application already processed: status=${application.status}`);
+    throw new Error('申请已处理');
   }
-  
+
   // 更新申请状态
   application.status = 'rejected';
   await application.save();
-  
-  // 发送通知给申请人
-  await Notification.create({
-    receiverId: application.applicantId,
-    type: 'approval',
-    title: 'Application rejected',
-    content: `Your application for project ${application.Project.title} has been rejected`
-  });
-  
+
+  // 发送通知给申请人（通过notificationService实现WebSocket实时推送）
+  if (application.type === 'invite') {
+    logger.info(`Sending invite rejected notification: applicantId=${application.applicantId}, projectId=${application.projectId}`);
+    await notificationService.notifyInvite(application.applicantId, application.inviterId, application.projectId, application.Project.title, 'rejected');
+  } else {
+    logger.info(`Sending application rejected notification: applicantId=${application.applicantId}, projectId=${application.projectId}`);
+    await notificationService.notifyApplication(application.applicantId, application.Project.createdBy, application.projectId, application.Project.title, 'rejected');
+  }
+
+  logger.info('Application rejected successfully');
   return application;
 };
 

@@ -1,19 +1,16 @@
-const { Op } = require('sequelize');
 const TalentProfile = require('../models/TalentProfile');
-const User = require('../models/User');
+const sequelize = require('../config/database');
+const { parseJsonArray, fuzzyMatchInArray, parsePagination } = require('../utils/filterUtils');
 
 const createTalentProfile = async (profileData, userId) => {
-  // 检查用户是否已有求组队信息
   const existingProfile = await TalentProfile.findOne({
     where: { userId, status: 'active' }
   });
 
   if (existingProfile) {
-    // 更新现有信息
     await existingProfile.update(profileData);
     return existingProfile;
   } else {
-    // 创建新的求组队信息
     const profile = await TalentProfile.create({
       ...profileData,
       userId
@@ -23,56 +20,51 @@ const createTalentProfile = async (profileData, userId) => {
 };
 
 const getTalentProfiles = async (filters = {}) => {
-  const { page = 1, limit = 10, skill, grade, major } = filters;
+  const { page, limit, offset } = parsePagination(filters, 10);
+  const { name, skill, status } = filters;
 
-  const where = {};
+  let statusFilter = status ? `AND tp.status = '${status}'` : 'AND tp.status = \'active\'';
+  let nameFilter = name ? `AND u.name LIKE '%${name}%'` : '';
+
+  const query = `
+    SELECT tp.*, u.id as user_id, u.name, u.avatar, u.college, u.major, u.grade
+    FROM talent_profiles tp
+    LEFT JOIN users u ON tp.userId = u.id
+    WHERE 1=1 ${statusFilter} ${nameFilter}
+    ORDER BY tp.created_at DESC
+    LIMIT ${offset}, ${limit}
+  `;
+
+  const [results, metadata] = await sequelize.query(query);
+  
+  let filteredProfiles = results;
+
   if (skill) {
-    where.skills = {
-      [Op.contains]: [skill]
-    };
+    filteredProfiles = results.filter(profile =>
+      fuzzyMatchInArray(profile.skills, skill)
+    );
   }
 
-  const offset = (page - 1) * limit;
-
-  const profiles = await TalentProfile.findAll({
-    where: {
-      ...where,
-      status: 'active'
-    },
-    include: [{
-      model: User,
-      attributes: ['id', 'name', 'avatar', 'college', 'major', 'grade']
-    }],
-    limit,
-    offset,
-    order: [['created_at', 'DESC']]
-  });
-
-  const total = await TalentProfile.count({
-    where: {
-      ...where,
-      status: 'active'
-    }
-  });
-
   return {
-    profiles,
-    total,
+    talents: filteredProfiles,
+    total: filteredProfiles.length,
     page,
     limit,
-    totalPages: Math.ceil(total / limit)
+    totalPages: Math.ceil(filteredProfiles.length / limit)
   };
 };
 
 const getTalentProfileByUserId = async (userId) => {
-  const profile = await TalentProfile.findOne({
-    where: { userId, status: 'active' },
-    include: [{
-      model: User,
-      attributes: ['id', 'name', 'avatar', 'college', 'major', 'grade']
-    }]
-  });
-  return profile;
+  const query = `
+    SELECT tp.*, u.id as user_id, u.name, u.avatar, u.college, u.major, u.grade
+    FROM talent_profiles tp
+    LEFT JOIN users u ON tp.userId = u.id
+    WHERE tp.userId = ${userId} AND tp.status = 'active'
+  `;
+
+  const [results, metadata] = await sequelize.query(query);
+
+  return results.length > 0 ? results[0] : null;
 };
 
 const updateTalentProfile = async (profileId, profileData, userId) => {

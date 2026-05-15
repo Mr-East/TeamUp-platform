@@ -43,6 +43,9 @@
             </view>
           </view>
           <view class="post-actions">
+            <view class="action-btn delete" @click="deletePost(post.id, 'recruit')">
+              <text class="btn-text">删除</text>
+            </view>
             <view class="action-btn" :class="{ active: !post.isClosed }" @click="togglePostStatus(post.id, 'recruit')">
               <text class="btn-text">{{ post.isClosed ? '开启' : '关闭' }}</text>
             </view>
@@ -75,6 +78,9 @@
             </view>
           </view>
           <view class="post-actions">
+            <view class="action-btn delete" @click="deletePost(post.id, 'seek')">
+              <text class="btn-text">删除</text>
+            </view>
             <view class="action-btn" :class="{ active: !post.isClosed }" @click="togglePostStatus(post.id, 'seek')">
               <text class="btn-text">{{ post.isClosed ? '开启' : '关闭' }}</text>
             </view>
@@ -138,79 +144,51 @@ const fetchUserPosts = async () => {
     
     if (response.data && response.data.success) {
       // 处理返回的帖子数据
-      const posts = response.data.data || [];
+      const data = response.data.data || {};
+      const projects = data.projects || [];
+      const talentProfile = data.talentProfile;
       
-      // 分类帖子
-      recruitPosts.value = posts.map(post => ({
+      // 处理找队友帖子
+      recruitPosts.value = projects.map(post => ({
         id: post.id,
         title: post.title,
         cover: post.coverImage || '',
         competitionName: post.competitionName || '未知竞赛',
         intro: post.description || '',
-        skills: post.requiredSkills || [],
+        skills: post.skills || [],
         competitionType: post.competitionType || '其他',
         deadline: post.deadline || '2026-05-31',
-        people: post.recruitmentCount || 1,
+        people: post.peopleNeeded || 1,
         verificationRequired: post.verificationRequired || false,
         date: post.created_at ? new Date(post.created_at).toISOString().split('T')[0] : '2026-04-21',
         status: post.status === 'active' ? 'active' : 'closed',
         statusText: post.status === 'active' ? '招募中' : '已关闭',
-        isClosed: post.status !== 'active' ? true : false
+        isClosed: post.status !== 'active'
       }));
+      
+      // 处理求组队帖子
+      if (talentProfile) {
+        seekPosts.value = [
+          {
+            id: talentProfile.id,
+            title: '我的求组队',
+            targetTrack: talentProfile.targetTrack || '',
+            skills: talentProfile.skills || [],
+            bio: talentProfile.bio || '',
+            date: talentProfile.created_at ? new Date(talentProfile.created_at).toISOString().split('T')[0] : '2026-04-21',
+            status: talentProfile.status === 'active' ? 'active' : 'closed',
+            statusText: talentProfile.status === 'active' ? '求职中' : '已关闭',
+            isClosed: talentProfile.status !== 'active'
+          }
+        ];
+      } else {
+        seekPosts.value = [];
+      }
     } else {
       uni.showToast({
         title: '获取帖子失败',
         icon: 'none'
       });
-      // 使用默认数据
-      recruitPosts.value = [
-        {
-          id: 1,
-          title: '寻找前端开发队友',
-          cover: '',
-          competitionName: '互联网+',
-          intro: '我们正在开发一个校园竞赛平台，需要前端开发队友一起完成项目。',
-          skills: ['Vue', 'React', 'JavaScript'],
-          competitionType: '互联网+',
-          deadline: '2026-05-15',
-          people: 2,
-          verificationRequired: true,
-          date: '2026-04-15',
-          status: 'active',
-          statusText: '招募中',
-          isClosed: false
-        },
-        {
-          id: 2,
-          title: 'AI项目组队',
-          cover: '',
-          competitionName: '挑战杯',
-          intro: '我们正在开发一个基于AI的智能推荐系统，需要机器学习相关技能的队友。',
-          skills: ['Python', 'TensorFlow', '机器学习'],
-          competitionType: '挑战杯',
-          deadline: '2026-05-10',
-          people: 3,
-          verificationRequired: false,
-          date: '2026-04-10',
-          status: 'closed',
-          statusText: '已关闭',
-          isClosed: true
-        }
-      ];
-      
-      seekPosts.value = [
-        {
-          id: 1,
-          title: '寻找机器学习项目组队',
-          targetTrack: '机器学习',
-          skills: ['Python', '机器学习', '数据挖掘'],
-          bio: '我是计算机专业大三学生，有丰富的机器学习经验，希望加入一个有潜力的项目团队。',
-          date: '2026-04-12',
-          status: 'active',
-          statusText: '求职中',
-          isClosed: false
-        }
-      ];
     }
   } catch (error) {
     console.error('获取帖子错误:', error);
@@ -218,27 +196,115 @@ const fetchUserPosts = async () => {
       title: '网络错误，请稍后重试',
       icon: 'none'
     });
-    // 使用默认数据
-    recruitPosts.value = [];
-    seekPosts.value = [];
   } finally {
     loading.value = false;
   }
 };
 
-// 删除帖子
-const togglePostStatus = (id, type) => {
-  if (type === 'recruit') {
-    const postIndex = recruitPosts.value.findIndex(p => p.id === id);
-    if (postIndex !== -1) {
-      recruitPosts.value.splice(postIndex, 1);
+// 切换帖子状态
+const togglePostStatus = async (id, type) => {
+  try {
+    const token = uni.getStorageSync('token');
+    if (!token) {
+      uni.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
     }
-  } else if (type === 'seek') {
-    const postIndex = seekPosts.value.findIndex(p => p.id === id);
-    if (postIndex !== -1) {
-      seekPosts.value.splice(postIndex, 1);
+    
+    let url = '';
+    if (type === 'recruit') {
+      url = `http://localhost:3000/api/users/projects/${id}/toggle-status`;
+    } else if (type === 'seek') {
+      url = `http://localhost:3000/api/users/talent-profiles/${id}/toggle-status`;
     }
+    
+    const response = await uni.request({
+      url,
+      method: 'PATCH',
+      header: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (response.data && response.data.success) {
+      uni.showToast({
+        title: '状态切换成功',
+        icon: 'success'
+      });
+      // 重新获取帖子列表
+      await fetchUserPosts();
+    } else {
+      uni.showToast({
+        title: '状态切换失败',
+        icon: 'none'
+      });
+    }
+  } catch (error) {
+    console.error('切换状态错误:', error);
+    uni.showToast({
+      title: '网络错误，请稍后重试',
+      icon: 'none'
+    });
   }
+};
+
+// 删除帖子
+const deletePost = (id, type) => {
+  uni.showModal({
+    title: '确认删除',
+    content: type === 'recruit' ? '确定要删除这个找队友帖子吗？' : '确定要删除这个求组队帖子吗？',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          const token = uni.getStorageSync('token');
+          if (!token) {
+            uni.showToast({
+              title: '请先登录',
+              icon: 'none'
+            });
+            return;
+          }
+          
+          let url = '';
+          if (type === 'recruit') {
+            url = `http://localhost:3000/api/users/projects/${id}`;
+          } else if (type === 'seek') {
+            url = `http://localhost:3000/api/users/talent-profiles/${id}`;
+          }
+          
+          const response = await uni.request({
+            url,
+            method: 'DELETE',
+            header: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.data && response.data.success) {
+            uni.showToast({
+              title: '删除成功',
+              icon: 'success'
+            });
+            // 重新获取帖子列表
+            await fetchUserPosts();
+          } else {
+            uni.showToast({
+              title: '删除失败',
+              icon: 'none'
+            });
+          }
+        } catch (error) {
+          console.error('删除错误:', error);
+          uni.showToast({
+            title: '网络错误，请稍后重试',
+            icon: 'none'
+          });
+        }
+      }
+    }
+  });
 };
 
 // 编辑帖子
@@ -498,6 +564,11 @@ const goBack = () => {
 .action-btn.edit {
   border-color: #c1c6d5;
   color: #717784;
+}
+
+.action-btn.delete {
+  border-color: #e54b4b;
+  color: #e54b4b;
 }
 
 /* 响应式设计 */

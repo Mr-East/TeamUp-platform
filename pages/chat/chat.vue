@@ -225,11 +225,11 @@ onLoad(async (options) => {
   }
 
   if (options.name) {
-    chatName.value = options.name;
+    chatName.value = decodeURIComponent(options.name);
   }
 
   if (options.avatar) {
-    chatAvatar.value = options.avatar;
+    chatAvatar.value = decodeURIComponent(options.avatar);
   }
 
   if (options.otherUserId) {

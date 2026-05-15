@@ -1,8 +1,34 @@
+const { Op, Sequelize } = require('sequelize');
 const Project = require('../models/Project');
 const ProjectMember = require('../models/ProjectMember');
 const Application = require('../models/Application');
 const Comment = require('../models/Comment');
 const User = require('../models/User');
+const { parseJsonArray, fuzzyMatchInArray, parsePagination } = require('../utils/filterUtils');
+
+const calculateDeadline = (deadlineType) => {
+  const now = new Date();
+  let deadlineDate = null;
+
+  switch (deadlineType) {
+    case '一周内':
+      deadlineDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      break;
+    case '两周内':
+      deadlineDate = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+      break;
+    case '一个月内':
+      deadlineDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      break;
+    case '三个月内':
+      deadlineDate = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+      break;
+    default:
+      break;
+  }
+
+  return deadlineDate;
+};
 
 const createProject = async (projectData, userId) => {
   const project = await Project.create({
@@ -21,29 +47,66 @@ const createProject = async (projectData, userId) => {
 };
 
 const getProjects = async (filters = {}) => {
-  const { page = 1, limit = 10, status = 'active', competitionType, skill, deadline } = filters;
+  const { page, limit, offset } = parsePagination(filters, 10);
+  const status = filters.status || 'active';
+  const competitionType = filters.competitionType;
+  const skill = filters.skill;
+  const deadline = filters.deadline;
+  const title = filters.title;
 
   const where = {};
-  if (status) {
+
+  where.status = { [Op.ne]: 'deleted' };
+
+  if (status && status !== 'all') {
     where.status = status;
   }
+  if (competitionType) {
+    where.competitionType = competitionType;
+  }
+  if (title) {
+    where.title = { [Op.like]: `%${title}%` };
+  }
+  if (deadline) {
+    const deadlineDate = calculateDeadline(deadline);
+    if (deadlineDate) {
+      where.deadline = { [Op.lte]: deadlineDate };
+    }
+  }
 
-  const offset = (page - 1) * limit;
+  // 如果有技能筛选，需要先查询所有符合条件的数据，然后在内存中筛选和分页
+  // 否则直接在数据库层面分页
+  let allProjects;
 
-  const projects = await Project.findAll({
-    where,
-    include: [{
-      model: User,
-      as: 'creator',
-      attributes: ['id', 'name', 'avatar']
-    }],
-    limit,
-    offset,
-    order: [['created_at', 'DESC']]
-  });
+  if (skill) {
+    // 有技能筛选时，先获取所有符合其他条件的数据
+    allProjects = await Project.findAll({
+      where,
+      include: [{
+        model: User,
+        as: 'creator',
+        attributes: ['id', 'name', 'avatar']
+      }],
+      order: [['created_at', 'DESC']]
+    });
+  } else {
+    // 没有技能筛选时，直接分页查询
+    const offset = (page - 1) * limit;
+    allProjects = await Project.findAll({
+      where,
+      include: [{
+        model: User,
+        as: 'creator',
+        attributes: ['id', 'name', 'avatar']
+      }],
+      limit,
+      offset,
+      order: [['created_at', 'DESC']]
+    });
+  }
 
-  // 计算每个项目的已加入人数和进度
-  const projectsWithProgress = await Promise.all(projects.map(async (project) => {
+  // 计算每个项目的已加入人数和进度，并进行技能筛选
+  const projectsWithProgress = await Promise.all(allProjects.map(async (project) => {
     // 获取已接受的成员数量
     const memberCount = await ProjectMember.count({
       where: { projectId: project.id, status: 'accepted' }
@@ -53,33 +116,10 @@ const getProjects = async (filters = {}) => {
     const totalNeeded = project.peopleNeeded || 1;
     const progress = Math.min(Math.round((memberCount / totalNeeded) * 100), 100);
 
-    // 检查竞赛类型筛选
-    if (competitionType) {
-      const projectCompetitionType = project.competitionType;
-      // 如果筛选的是大类，需要检查是否匹配
-      const mainCategories = ['创新创业', '学科竞赛', '技能大赛', '艺术设计', '科研项目'];
-      if (mainCategories.includes(competitionType)) {
-        // 大类筛选，需要根据具体类别来判断
-        const categoryMap = {
-          '创新创业': ['互联网+', '挑战杯', '创青春', '中国创新创业大赛', '青年红色筑梦之旅', '创业计划大赛'],
-          '学科竞赛': ['数学建模', '电子设计大赛', '机械设计大赛', '程序设计大赛', '英语竞赛', '数学竞赛', '物理竞赛', '化学竞赛'],
-          '技能大赛': ['职业技能大赛', '软件设计大赛', '网络安全大赛', '云计算大赛', '大数据大赛', '人工智能大赛'],
-          '艺术设计': ['大广赛', '广告艺术大赛', '包装设计大赛', '环境设计大赛', '动画设计大赛', '工业设计大赛'],
-          '科研项目': ['大创项目', '挑战杯学术赛道', '实验室项目', '学术论文竞赛', '暑期社会实践']
-        };
-        const categoryItems = categoryMap[competitionType] || [];
-        if (!categoryItems.includes(projectCompetitionType)) {
-          return null;
-        }
-      } else if (projectCompetitionType !== competitionType) {
-        return null;
-      }
-    }
-
-    // 检查技能筛选
-    if (skill && project.skills) {
-      const hasSkill = project.skills.some(s => s.toLowerCase() === skill.toLowerCase());
-      if (!hasSkill) {
+    // 检查技能筛选（在内存中进行，避免数据库兼容性问题）
+    if (skill) {
+      // 使用统一的模糊匹配工具函数
+      if (!fuzzyMatchInArray(project.skills, skill)) {
         return null;
       }
     }
@@ -111,9 +151,17 @@ const getProjects = async (filters = {}) => {
   }));
 
   // 过滤掉不符合筛选条件的项目
-  const filteredProjects = projectsWithProgress.filter(project => project !== null);
+  let filteredProjects = projectsWithProgress.filter(project => project !== null);
 
-  const total = await Project.count({ where });
+  // 如果有技能筛选，需要进行分页
+  let total = filteredProjects.length;
+  if (skill) {
+    const offset = (page - 1) * limit;
+    filteredProjects = filteredProjects.slice(offset, offset + limit);
+  } else {
+    // 没有技能筛选时，总数来自数据库
+    total = await Project.count({ where });
+  }
 
   return {
     projects: filteredProjects,
@@ -154,14 +202,14 @@ const getUserProjects = async (userId) => {
   return projects;
 };
 
-const updateProject = async (projectId, projectData, userId) => {
-  const project = await Project.findByPk(projectId);
+const updateProject = async (projectId, projectData, userId, isAdmin = false) => {
+  const project = await Project.findByPk(Number(projectId));
 
   if (!project) {
     throw new Error('Project not found');
   }
 
-  if (project.createdBy !== userId) {
+  if (!isAdmin && Number(project.createdBy) !== Number(userId)) {
     throw new Error('Permission denied');
   }
 
@@ -177,18 +225,21 @@ const updateProject = async (projectId, projectData, userId) => {
   return project;
 };
 
-const deleteProject = async (projectId, userId) => {
+const deleteProject = async (projectId, userId, isAdmin = false) => {
   const project = await Project.findByPk(projectId);
 
   if (!project) {
     throw new Error('Project not found');
   }
 
-  if (project.createdBy !== userId) {
+  // 如果不是管理员，只能删除自己创建的项目
+  if (!isAdmin && Number(project.createdBy) !== Number(userId)) {
     throw new Error('Permission denied');
   }
 
-  await project.destroy();
+  // 软删除：将 status 设置为 'deleted'
+  project.status = 'deleted';
+  await project.save();
 
   return { message: 'Project deleted successfully' };
 };
@@ -295,6 +346,8 @@ const getProjectComments = async (projectId) => {
     throw new Error('Project not found');
   }
 
+  console.log('获取项目评论，项目ID:', projectId);
+
   const comments = await Comment.findAll({
     where: { projectId, parentCommentId: null },
     include: [
@@ -305,14 +358,54 @@ const getProjectComments = async (projectId) => {
       {
         model: Comment,
         as: 'replies',
-        include: [{
-          model: User,
-          attributes: ['id', 'name', 'avatar']
-        }],
+        include: [
+          {
+            model: User,
+            attributes: ['id', 'name', 'avatar']
+          },
+          {
+            model: Comment,
+            as: 'parent',
+            include: [{
+              model: User,
+              attributes: ['id', 'name', 'avatar']
+            }]
+          },
+          {
+            model: Comment,
+            as: 'replies',
+            include: [
+              {
+                model: User,
+                attributes: ['id', 'name', 'avatar']
+              },
+              {
+                model: Comment,
+                as: 'parent',
+                include: [{
+                  model: User,
+                  attributes: ['id', 'name', 'avatar']
+                }]
+              }
+            ],
+            order: [['created_at', 'ASC']]
+          }
+        ],
         order: [['created_at', 'ASC']]
       }
     ],
     order: [['created_at', 'DESC']]
+  });
+
+  console.log('获取到评论数量:', comments.length);
+  comments.forEach(comment => {
+    console.log('评论ID:', comment.id, '用户ID:', comment.userId, '用户信息:', comment.user);
+    if (comment.replies && comment.replies.length > 0) {
+      console.log('回复数量:', comment.replies.length);
+      comment.replies.forEach(reply => {
+        console.log('回复ID:', reply.id, '用户ID:', reply.userId, '用户信息:', reply.user, '父评论ID:', reply.parentCommentId);
+      });
+    }
   });
 
   return comments;
@@ -325,12 +418,15 @@ const createProjectComment = async (projectId, userId, content, parentCommentId 
     throw new Error('Project not found');
   }
 
+  console.log('创建评论，用户ID:', userId, '内容:', content, '父评论ID:', parentCommentId);
+
   // 如果是回复，验证父评论是否存在
   if (parentCommentId) {
     const parentComment = await Comment.findByPk(parentCommentId);
     if (!parentComment) {
       throw new Error('Parent comment not found');
     }
+    console.log('父评论存在，ID:', parentComment.id);
   }
 
   const comment = await Comment.create({
@@ -340,12 +436,26 @@ const createProjectComment = async (projectId, userId, content, parentCommentId 
     parentCommentId
   });
 
+  console.log('评论创建成功，ID:', comment.id);
+
   const populatedComment = await Comment.findByPk(comment.id, {
-    include: [{
-      model: User,
-      attributes: ['id', 'name', 'avatar']
-    }]
+    include: [
+      {
+        model: User,
+        attributes: ['id', 'name', 'avatar']
+      },
+      {
+        model: Comment,
+        as: 'parent',
+        include: [{
+          model: User,
+          attributes: ['id', 'name', 'avatar']
+        }]
+      }
+    ]
   });
+
+  console.log('评论关联用户信息:', populatedComment.user);
 
   return populatedComment;
 };

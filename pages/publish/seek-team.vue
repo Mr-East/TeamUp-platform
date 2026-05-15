@@ -35,7 +35,7 @@
             <text class="skill-text">{{ skill }}</text>
             <text class="remove-btn" @click="removeSkill(index)">×</text>
           </view>
-          <view class="add-skill-btn" @click="showSkillPicker">
+          <view class="add-skill-btn" @click="openSkillPicker">
             <text class="add-icon">+</text>
             <text class="add-text">添加</text>
           </view>
@@ -62,19 +62,23 @@
           <view class="preview-content">
             <view class="preview-user">
               <view class="preview-avatar-wrapper">
-                <image :src="userInfo.avatar" mode="aspectFill" class="preview-avatar" />
+                <image :src="userInfo.avatar || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square'" mode="aspectFill" class="preview-avatar" />
                 <view class="online-indicator"></view>
               </view>
               <view class="preview-user-info">
                 <view class="preview-name-row">
-                  <text class="preview-name">{{ userInfo.name }}</text>
-                  <text class="preview-role">{{ userInfo.role }}</text>
+                  <text class="preview-name">{{ userInfo.name || '加载中...' }}</text>
+                  <text class="preview-role">{{ userInfo.role || '' }}</text>
                 </view>
-                <text class="preview-school">{{ userInfo.school }}</text>
+                <text class="preview-school">{{ userInfo.school || '' }}</text>
               </view>
               <view class="preview-status">
                 <text class="status-text">寻找中</text>
               </view>
+            </view>
+            <view class="preview-track" v-if="formData.targetTrack">
+              <text class="track-label">意向赛道：</text>
+              <text class="track-value">{{ formData.targetTrack }}</text>
             </view>
             <text class="preview-bio">"{{ formData.bio || '正在输入个人简介...' }}"</text>
             <view class="preview-footer">
@@ -82,6 +86,7 @@
                 <view class="skill-tag" v-for="(skill, idx) in formData.skills" :key="idx">
                   <text>{{ skill }}</text>
                 </view>
+                <text class="no-skills" v-if="formData.skills.length === 0">待添加技能标签</text>
               </view>
               <text class="preview-time">刚刚更新于人才广场</text>
             </view>
@@ -104,6 +109,43 @@
       <text class="success-icon">✅</text>
       <text class="success-text">发布成功！</text>
     </view>
+
+    <!-- 技能选择器 -->
+    <view class="skill-picker" v-if="isSkillPickerVisible">
+      <view class="skill-picker-overlay" @click="closeSkillPicker"></view>
+      <view class="skill-picker-content">
+        <view class="skill-picker-header">
+          <text class="skill-picker-title">选择技能标签</text>
+          <text class="skill-picker-close" @click="closeSkillPicker">×</text>
+        </view>
+        <view class="category-tabs">
+          <view 
+            v-for="(category, index) in skillCategories" 
+            :key="index"
+            :class="['category-tab', { active: currentCategoryIndex === index }]"
+            @click="currentCategoryIndex = index">
+            <text>{{ category }}</text>
+          </view>
+        </view>
+        <view class="skill-picker-body">
+          <view class="skill-grid">
+            <view 
+              v-for="(skill, sIndex) in skillOptions[skillCategories[currentCategoryIndex]]" 
+              :key="sIndex"
+              :class="['skill-item', { selected: formData.skills.includes(skill) }]"
+              @click="toggleSkill(skill)">
+              <text>{{ skill }}</text>
+            </view>
+          </view>
+        </view>
+        <view class="skill-picker-footer">
+          <text class="selected-count">已选 {{ formData.skills.length }}/5</text>
+          <view class="confirm-btn" @click="closeSkillPicker">
+            <text>确定</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -112,6 +154,19 @@ import { ref, reactive } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 
 const showSuccess = ref(false);
+const isSkillPickerVisible = ref(false);
+const currentCategoryIndex = ref(0);
+
+// 编辑模式相关
+const isEditMode = ref(false);
+const editPostId = ref(null);
+
+const userInfo = ref({
+  name: '',
+  role: '',
+  school: '',
+  avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square'
+});
 
 const formData = reactive({
   targetTrack: '',
@@ -119,10 +174,28 @@ const formData = reactive({
   bio: ''
 });
 
-// 页面加载时检查是否为编辑模式
-onLoad((options) => {
+const skillOptions = {
+  '前端': ['Vue', 'React', 'Angular', 'JavaScript', 'TypeScript', 'HTML/CSS', '小程序开发', 'Node.js'],
+  '后端': ['Python', 'Java', 'Go', 'PHP', 'C++', 'C#', 'Spring Boot', 'Django'],
+  '移动端': ['Android', 'iOS', 'Flutter', 'React Native', 'Uni-app'],
+  'AI/数据': ['机器学习', '深度学习', '数据分析', '数据挖掘', '计算机视觉', '自然语言处理'],
+  '设计': ['UI设计', 'UX设计', '视觉设计', '产品设计', '交互设计', 'Photoshop', 'Figma'],
+  '产品/运营': ['产品经理', '需求分析', '项目管理', '运营策划', '市场营销'],
+  '其他': ['测试工程', 'DevOps', '云计算', '网络安全', '区块链', '硬件开发']
+};
+
+const skillCategories = Object.keys(skillOptions);
+
+// 页面加载时检查是否为编辑模式，并获取用户信息
+onLoad(async (options) => {
   console.log('页面加载，接收到的参数：', options);
+  
+  // 获取用户信息
+  await getUserInfo();
+  
   if (options.edit === 'true' && options.postData) {
+    isEditMode.value = true;
+    editPostId.value = options.postId;
     try {
       console.log('开始解析帖子数据...');
       console.log('postData原始值：', options.postData);
@@ -141,11 +214,42 @@ onLoad((options) => {
   }
 });
 
-const userInfo = {
-  name: '张梦颖',
-  role: 'UI/UX Designer',
-  school: '清华大学 · 交互设计',
-  avatar: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20female&image_size=square'
+// 获取用户信息
+const getUserInfo = async () => {
+  try {
+    const token = uni.getStorageSync('token');
+    if (!token) {
+      console.log('未找到token，用户可能未登录');
+      uni.showToast({ title: '请先登录', icon: 'none' });
+      return;
+    }
+
+    const response = await uni.request({
+      url: 'http://localhost:3000/api/users/me',
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    console.log('获取用户信息响应:', response);
+
+    if (response.data && response.data.success) {
+      const user = response.data.data;
+      console.log('用户数据:', user);
+      userInfo.value = {
+        name: user.name || user.username || '未设置用户名',
+        role: user.role || '',
+        school: user.college && user.major ? `${user.college} · ${user.major}` : (user.college || user.major || ''),
+        avatar: user.avatar || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=student%20avatar%20default&image_size=square'
+      };
+      console.log('设置后的userInfo:', userInfo.value);
+    } else {
+      console.error('获取用户信息失败:', response.data?.message);
+    }
+  } catch (error) {
+    console.error('获取用户信息失败:', error);
+  }
 };
 
 const goBack = () => {
@@ -162,8 +266,27 @@ const removeSkill = (index) => {
   formData.skills.splice(index, 1);
 };
 
-const showSkillPicker = () => {
-  console.log('选择技能标签');
+const openSkillPicker = () => {
+  isSkillPickerVisible.value = true;
+  currentCategoryIndex.value = 0;
+};
+
+const toggleSkill = (skill) => {
+  const index = formData.skills.indexOf(skill);
+  if (index > -1) {
+    formData.skills.splice(index, 1);
+  } else {
+    if (formData.skills.length < 5) {
+      formData.skills.push(skill);
+    } else {
+      uni.showToast({ title: '最多选择5个技能', icon: 'none' });
+    }
+  }
+};
+
+// 关闭技能选择器
+const closeSkillPicker = () => {
+  isSkillPickerVisible.value = false;
 };
 
 const submitForm = async () => {
@@ -174,9 +297,18 @@ const submitForm = async () => {
       return;
     }
 
+    // 判断是新增还是编辑
+    console.log('submitForm - isEditMode:', isEditMode.value, 'editPostId:', editPostId.value);
+    const isEdit = isEditMode.value && editPostId.value;
+    const url = isEdit 
+      ? `http://localhost:3000/api/talent-profiles/${editPostId.value}` 
+      : 'http://localhost:3000/api/talent-profiles';
+    const method = isEdit ? 'PUT' : 'POST';
+    console.log('submitForm - isEdit:', isEdit, 'url:', url, 'method:', method);
+
     const response = await uni.request({
-      url: 'http://localhost:3000/api/talent-profiles',
-      method: 'POST',
+      url,
+      method,
       header: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -654,5 +786,173 @@ const submitForm = async () => {
 .success-text {
   font-size: 14px;
   font-weight: bold;
+}
+
+/* 技能选择器 */
+.skill-picker {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.skill-picker-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.skill-picker-content {
+  position: relative;
+  width: 100%;
+  max-height: 70vh;
+  background-color: white;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 1001;
+}
+
+.skill-picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f2f4f7;
+}
+
+.skill-picker-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #191c1e;
+}
+
+.skill-picker-close {
+  font-size: 24px;
+  color: #717784;
+  cursor: pointer;
+}
+
+.skill-picker-body {
+  padding: 0;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.category-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 12px 16px;
+  gap: 8px;
+  border-bottom: 1px solid #f2f4f7;
+}
+
+.category-tab {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  background-color: #f2f4f7;
+  color: #717784;
+  border-radius: 16px;
+  font-size: 13px;
+}
+
+.category-tab.active {
+  background-color: #4A90E2;
+  color: white;
+}
+
+.skill-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 16px;
+}
+
+.skill-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f2f4f7;
+  color: #414753;
+  padding: 10px 16px;
+  border-radius: 20px;
+  margin: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.skill-item.selected {
+  background-color: #4A90E2;
+  color: white;
+}
+
+.skill-item:hover {
+  background-color: #e8f0fe;
+  color: #4A90E2;
+}
+
+.skill-item.selected:hover {
+  background-color: #3a7bc8;
+  color: white;
+}
+
+.skill-picker-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-top: 1px solid #f2f4f7;
+}
+
+.selected-count {
+  font-size: 14px;
+  color: #717784;
+}
+
+.confirm-btn {
+  background-color: #4A90E2;
+  color: white;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* 预览卡片样式 */
+.preview-track {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background-color: #f2f4f7;
+  border-radius: 8px;
+}
+
+.track-label {
+  font-size: 12px;
+  color: #717784;
+  font-weight: bold;
+}
+
+.track-value {
+  font-size: 12px;
+  color: #4A90E2;
+  font-weight: bold;
+  margin-left: 4px;
+}
+
+.no-skills {
+  font-size: 12px;
+  color: #717784;
+  font-style: italic;
 }
 </style>

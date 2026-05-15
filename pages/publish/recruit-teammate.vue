@@ -92,29 +92,20 @@
     <view class="skill-modal" v-if="showCompetitionModalFlag" @click="closeCompetitionModal">
       <view class="skill-modal-content" @click.stop>
         <view class="modal-header">
-          <text class="modal-title">选择赛事类型</text>
+          <text class="modal-title">选择竞赛大类</text>
           <text class="modal-close" @click="closeCompetitionModal">×</text>
-        </view>
-        <view class="category-tabs">
-          <view
-            v-for="(category, index) in competitionCategories"
-            :key="index"
-            :class="['category-tab', { active: currentCompetitionCategoryIndex === index }]"
-            @click="currentCompetitionCategoryIndex = index">
-            <text>{{ category }}</text>
-          </view>
         </view>
         <view class="skill-grid">
           <view
-            v-for="(competition, cIndex) in competitionTypeOptions[competitionCategories[currentCompetitionCategoryIndex]]"
-            :key="cIndex"
-            :class="['skill-item', { selected: formData.competitionType === competition }]"
-            @click="selectCompetition(competition)">
-            <text>{{ competition }}</text>
+            v-for="(category, index) in competitionCategories"
+            :key="index"
+            :class="['skill-item', { selected: formData.competitionType === category }]"
+            @click="selectCompetition(category)">
+            <text>{{ category }}</text>
           </view>
         </view>
         <view class="modal-footer">
-          <text class="selected-count">{{ formData.competitionType || '请选择赛事类型' }}</text>
+          <text class="selected-count">{{ formData.competitionType || '请选择竞赛大类' }}</text>
           <view class="confirm-btn" @click="closeCompetitionModal">
             <text>确定</text>
           </view>
@@ -148,7 +139,9 @@
                 <text>{{ formData.people }} 人</text>
               </view>
             </picker>
-            <input v-else type="number" v-model.number="formData.people" min="1" class="field-input" placeholder="请输入人数" />
+            <view v-else class="field-input input-mode">
+              <input type="number" v-model.number="formData.people" min="1" class="people-input" placeholder="请输入人数" />
+            </view>
             <view class="toggle-input-btn" @click="togglePeopleInput">
               <text>{{ showPeopleInput ? '选择' : '输入' }}</text>
             </view>
@@ -193,8 +186,11 @@ const showSuccess = ref(false);
 const showSkillModalFlag = ref(false);
 const showCompetitionModalFlag = ref(false);
 const currentCategoryIndex = ref(0);
-const currentCompetitionCategoryIndex = ref(0);
 const showPeopleInput = ref(false);
+
+// 编辑模式相关
+const isEditMode = ref(false);
+const editPostId = ref(null);
 
 const formData = reactive({
   cover: '',
@@ -210,31 +206,41 @@ const formData = reactive({
 // 页面加载时检查是否为编辑模式
 onLoad((options) => {
   console.log('页面加载，接收到的参数：', options);
-  if (options.edit === 'true' && options.postData) {
-    try {
-      console.log('开始解析帖子数据...');
-      console.log('postData原始值：', options.postData);
-      const decodedData = decodeURIComponent(options.postData);
-      console.log('解码后的数据：', decodedData);
-      const postData = JSON.parse(decodedData);
-      console.log('解析后的数据：', postData);
-      // 回显帖子信息
-      formData.cover = postData.cover || '';
-      formData.competitionName = postData.competitionName || postData.title || '';
-      formData.intro = postData.intro || '';
-      formData.skills = postData.skills || [];
-      formData.competitionType = postData.competitionType || '';
-      formData.deadline = postData.deadline || postData.date || '';
-      formData.people = postData.people || 1;
-      formData.verificationRequired = postData.verificationRequired !== false;
-      console.log('编辑模式加载成功，表单数据：', formData);
-    } catch (e) {
-      console.error('解析帖子数据失败', e);
+  
+  // 检查是否为编辑模式（兼容多种传递方式）
+  const isEditParam = options.edit === 'true' || options.edit === true || options.isEdit === 'true' || options.isEdit === true;
+  
+  if (isEditParam && options.postId) {
+    isEditMode.value = true;
+    editPostId.value = Number(options.postId);
+    console.log('进入编辑模式，帖子ID：', editPostId.value);
+    
+    if (options.postData) {
+      try {
+        console.log('开始解析帖子数据...');
+        console.log('postData原始值：', options.postData);
+        const decodedData = decodeURIComponent(options.postData);
+        console.log('解码后的数据：', decodedData);
+        const postData = JSON.parse(decodedData);
+        console.log('解析后的数据：', postData);
+        // 回显帖子信息
+        formData.cover = postData.cover || '';
+        formData.competitionName = postData.competitionName || postData.title || '';
+        formData.intro = postData.intro || '';
+        formData.skills = postData.skills || [];
+        formData.competitionType = postData.competitionType || '';
+        formData.deadline = postData.deadline || postData.date || '';
+        formData.people = postData.people || 1;
+        formData.verificationRequired = postData.verificationRequired !== false;
+        console.log('编辑模式加载成功，表单数据：', formData);
+      } catch (e) {
+        console.error('解析帖子数据失败', e);
+      }
     }
   }
 });
 
-const peopleOptions = ['1 人', '2 人', '3 人', '更多'];
+const peopleOptions = ['1', '2', '3', '更多'];
 
 const competitionTypeOptions = {
   '创新创业': ['互联网+', '挑战杯', '创青春', '中国创新创业大赛', '青年红色筑梦之旅', '创业计划大赛'],
@@ -339,7 +345,6 @@ const toggleSkill = (skill) => {
 
 const showCompetitionModal = () => {
   showCompetitionModalFlag.value = true;
-  currentCompetitionCategoryIndex.value = 0;
 };
 
 const closeCompetitionModal = () => {
@@ -355,8 +360,12 @@ const togglePeopleInput = () => {
 };
 
 const onPeopleChange = (e) => {
-  const index = e.detail.value;
-  formData.people = index + 1;
+  const index = parseInt(e.detail.value, 10);
+  if (index === 3) {
+    showPeopleInput.value = true;
+  } else {
+    formData.people = index + 1;
+  }
 };
 
 const onDateChange = (e) => {
@@ -375,9 +384,18 @@ const submitForm = async () => {
       return;
     }
 
+    // 判断是新增还是编辑
+    console.log('submitForm - isEditMode:', isEditMode.value, 'editPostId:', editPostId.value);
+    const isEdit = isEditMode.value && editPostId.value;
+    const url = isEdit 
+      ? `http://localhost:3000/api/projects/${editPostId.value}` 
+      : 'http://localhost:3000/api/projects';
+    const method = isEdit ? 'PUT' : 'POST';
+    console.log('submitForm - isEdit:', isEdit, 'url:', url, 'method:', method);
+
     const response = await uni.request({
-      url: 'http://localhost:3000/api/projects',
-      method: 'POST',
+      url,
+      method,
       header: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -402,11 +420,11 @@ const submitForm = async () => {
         uni.navigateBack();
       }, 1500);
     } else {
-      uni.showToast({ title: response.data?.message || '发布失败', icon: 'none' });
+      uni.showToast({ title: response.data?.message || (isEdit ? '修改失败' : '发布失败'), icon: 'none' });
     }
   } catch (error) {
-    console.error('发布失败', error);
-    uni.showToast({ title: '发布失败，请重试', icon: 'none' });
+    console.error('操作失败', error);
+    uni.showToast({ title: '操作失败，请重试', icon: 'none' });
   }
 };
 </script>
@@ -551,7 +569,6 @@ const submitForm = async () => {
   color: #191c1e;
   border: 1px solid #c1c6d5;
   outline: none;
-  text-align: left;
 }
 
 .field-input:focus {
@@ -648,6 +665,24 @@ const submitForm = async () => {
 .people-picker-container {
   position: relative;
   width: 100%;
+}
+
+.people-picker-container .field-input {
+  padding-right: 70px;
+}
+
+.people-picker-container .input-mode {
+  display: flex;
+  align-items: center;
+}
+
+.people-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #191c1e;
+  background: transparent;
 }
 
 .toggle-input-btn {

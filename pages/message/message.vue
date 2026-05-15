@@ -25,6 +25,9 @@
       </view>
       <view class="tab-item" :class="{ active: activeTab === 'system' }" @click="activeTab = 'system'">
         <text class="tab-text">系统通知</text>
+        <view v-if="unreadNotificationCount > 0" class="notification-badge">
+          <text class="badge-text">{{ unreadNotificationCount > 99 ? '99+' : unreadNotificationCount }}</text>
+        </view>
       </view>
     </view>
 
@@ -82,11 +85,17 @@
       </view>
       <!-- 通知列表 -->
       <view v-else class="system-list">
-        <view class="system-item" v-for="(notification, index) in systemNotifications" :key="index">
+        <view class="system-item" 
+              v-for="(notification, index) in systemNotifications" 
+              :key="index"
+              :class="{ unread: !notification.isRead }"
+              @click="handleNotificationClick(notification)">
           <view class="system-icon">
-            <text v-if="notification.type === 'reminder'" class="icon">📢</text>
-            <text v-else-if="notification.type === 'approval'" class="icon">✅</text>
-            <text v-else class="icon">📥</text>
+            <text v-if="notification.type === 'application'" class="icon">📥</text>
+            <text v-else-if="notification.type === 'invite'" class="icon">👋</text>
+            <text v-else-if="notification.type === 'application_approved' || notification.type === 'invite_accepted'" class="icon">✅</text>
+            <text v-else-if="notification.type === 'application_rejected' || notification.type === 'invite_rejected'" class="icon">❌</text>
+            <text v-else class="icon">📢</text>
           </view>
           <view class="system-content-wrapper">
             <view class="system-header">
@@ -94,6 +103,7 @@
               <text class="system-time">{{ notification.time }}</text>
             </view>
             <text class="system-content">{{ notification.content }}</text>
+            <view v-if="!notification.isRead" class="unread-dot"></view>
           </view>
         </view>
       </view>
@@ -102,27 +112,23 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { onLoad, onShow } from '@dcloudio/uni-app';
+import wsService from '../../ws服务.js';
 
-// 激活的标签
 const activeTab = ref('private');
-// 私信数据
 const privateMessages = ref([]);
-// 系统通知数据
 const systemNotifications = ref([]);
-// 加载状态
+const unreadNotificationCount = ref(0);
 const loading = ref({
   chats: false,
   notifications: false
 });
-// 错误信息
 const error = ref({
   chats: '',
   notifications: ''
 });
 
-// 检查登录状态并获取数据
 onLoad(async () => {
   const token = uni.getStorageSync('token');
   if (!token) {
@@ -132,21 +138,20 @@ onLoad(async () => {
     return;
   }
   
-  // 获取私信列表和系统通知
   await fetchPrivateMessages();
   await fetchSystemNotifications();
+  setupWebSocketHandler();
 });
 
-// 页面显示时重新获取数据
 onShow(async () => {
   const token = uni.getStorageSync('token');
   if (token) {
     await fetchPrivateMessages();
     await fetchSystemNotifications();
+    await fetchUnreadCount();
   }
 });
 
-// 监听标签切换，切换时获取对应数据
 watch(activeTab, async (newTab) => {
   if (newTab === 'private' && privateMessages.value.length === 0) {
     await fetchPrivateMessages();
@@ -155,7 +160,34 @@ watch(activeTab, async (newTab) => {
   }
 });
 
-// 获取私信列表
+const setupWebSocketHandler = () => {
+  wsService.setNotificationHandler((notification) => {
+    console.log('Received notification via WebSocket:', notification);
+    
+    const newNotification = {
+      id: notification.id,
+      title: notification.title,
+      content: notification.content,
+      time: formatTime(notification.created_at),
+      type: notification.type,
+      isRead: notification.isRead,
+      link: notification.link,
+      relatedId: notification.relatedId,
+      relatedType: notification.relatedType,
+      senderId: notification.sender ? notification.sender.id : null
+    };
+    
+    systemNotifications.value.unshift(newNotification);
+    unreadNotificationCount.value++;
+    
+    uni.showToast({
+      title: notification.title,
+      icon: 'none',
+      duration: 2000
+    });
+  });
+};
+
 const fetchPrivateMessages = async () => {
   try {
     loading.value.chats = true;
@@ -191,14 +223,12 @@ const fetchPrivateMessages = async () => {
   } catch (err) {
     console.error('获取私信列表错误:', err);
     error.value.chats = '网络错误，请稍后重试';
-    // 使用默认数据
     privateMessages.value = [];
   } finally {
     loading.value.chats = false;
   }
 };
 
-// 获取系统通知
 const fetchSystemNotifications = async () => {
   try {
     loading.value.notifications = true;
@@ -214,29 +244,93 @@ const fetchSystemNotifications = async () => {
     });
     
     if (response.data && response.data.success) {
-      systemNotifications.value = response.data.data.map(notification => ({
+      const data = response.data.data;
+      const notifications = data.notifications || data || [];
+      systemNotifications.value = notifications.map(notification => ({
         id: notification.id,
         title: notification.title || '系统通知',
         content: notification.content || '',
         time: formatTime(notification.created_at),
-        type: notification.type || 'reminder'
+        type: notification.type || 'system',
+        isRead: notification.isRead || false,
+        link: notification.link,
+        relatedId: notification.relatedId,
+        relatedType: notification.relatedType
       }));
+      unreadNotificationCount.value = data.unreadCount || 0;
     } else {
       error.value.notifications = '获取系统通知失败';
-      // 使用默认数据
       systemNotifications.value = [];
     }
   } catch (err) {
     console.error('获取系统通知错误:', err);
     error.value.notifications = '网络错误，请稍后重试';
-    // 使用默认数据
     systemNotifications.value = [];
   } finally {
     loading.value.notifications = false;
   }
 };
 
-// 格式化时间
+const fetchUnreadCount = async () => {
+  try {
+    const token = uni.getStorageSync('token');
+    const response = await uni.request({
+      url: 'http://localhost:3000/api/notifications/unread_count',
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (response.data && response.data.success) {
+      unreadNotificationCount.value = response.data.data.unreadCount || 0;
+    }
+  } catch (err) {
+    console.error('获取未读数量错误:', err);
+  }
+};
+
+const handleNotificationClick = async (notification) => {
+  if (!notification.isRead) {
+    await markNotificationAsRead(notification.id);
+    notification.isRead = true;
+    unreadNotificationCount.value = Math.max(0, unreadNotificationCount.value - 1);
+  }
+
+  if (notification.link) {
+    const url = notification.link;
+    if (url.includes('/pages/invites/invites')) {
+      uni.navigateTo({ url: '/pages/invites/invites' });
+    } else if (url.includes('/pages/project/detail')) {
+      const projectId = notification.relatedId;
+      uni.navigateTo({ url: `/pages/recruitment-detail/recruitment-detail?projectId=${projectId}` });
+    } else if (url.includes('/pages/chat/chat')) {
+      const chatId = notification.relatedId;
+      const userId = notification.senderId;
+      uni.navigateTo({ url: `/pages/chat/chat?chatId=${chatId}&userId=${userId}` });
+    } else {
+      uni.switchTab({ url: '/pages/message/message' });
+    }
+  } else {
+    uni.switchTab({ url: '/pages/message/message' });
+  }
+};
+
+const markNotificationAsRead = async (notificationId) => {
+  try {
+    const token = uni.getStorageSync('token');
+    await uni.request({
+      url: `http://localhost:3000/api/notifications/${notificationId}/read`,
+      method: 'PUT',
+      header: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  } catch (err) {
+    console.error('标记通知已读错误:', err);
+  }
+};
+
 const formatTime = (timeString) => {
   if (!timeString) return '';
   
@@ -246,22 +340,17 @@ const formatTime = (timeString) => {
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   
   if (diffDays === 0) {
-    // 今天
     return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
   } else if (diffDays === 1) {
-    // 昨天
     return '昨天';
   } else if (diffDays < 7) {
-    // 一周内
     const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
     return weekdays[date.getDay()];
   } else {
-    // 超过一周
     return date.toLocaleDateString('zh-CN');
   }
 };
 
-// 跳转到聊天页面
 const goToChat = (chatId, otherUserId, name, avatar) => {
   const currentUser = uni.getStorageSync('userInfo');
   const currentUserId = currentUser?.id;
@@ -279,14 +368,12 @@ const goToChat = (chatId, otherUserId, name, avatar) => {
   });
 };
 
-// 跳转到组队申请
 const goToInvites = () => {
   uni.navigateTo({
     url: '/pages/invites/invites'
   });
 };
 
-// 全部标为已读
 const markAsRead = async () => {
   try {
     const token = uni.getStorageSync('token');
@@ -303,8 +390,8 @@ const markAsRead = async () => {
         title: '已全部标记为已读',
         icon: 'success'
       });
-      // 重新获取通知列表
-      await fetchSystemNotifications();
+      systemNotifications.value.forEach(n => n.isRead = true);
+      unreadNotificationCount.value = 0;
     } else {
       uni.showToast({
         title: '标记失败，请稍后重试',
@@ -407,6 +494,9 @@ const markAsRead = async () => {
   text-align: center;
   position: relative;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tab-item.active {
@@ -425,6 +515,24 @@ const markAsRead = async () => {
 
 .tab-text {
   font-size: 16px;
+}
+
+.notification-badge {
+  margin-left: 6px;
+  min-width: 18px;
+  height: 18px;
+  background-color: #ff4d4f;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+.badge-text {
+  font-size: 10px;
+  color: white;
+  font-weight: bold;
 }
 
 .message-list {
@@ -588,6 +696,12 @@ const markAsRead = async () => {
   background-color: white;
   border-radius: 8px;
   margin-bottom: 10px;
+  cursor: pointer;
+  position: relative;
+}
+
+.system-item.unread {
+  background-color: #f0f7ff;
 }
 
 .system-icon {
@@ -604,19 +718,20 @@ const markAsRead = async () => {
 
 .system-content-wrapper {
   flex: 1;
+  position: relative;
 }
 
 .system-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 
 .system-title {
   font-size: 16px;
   font-weight: bold;
-  color: #4A90E2;
+  color: #333;
   flex: 1;
   margin-right: 10px;
 }
@@ -629,7 +744,17 @@ const markAsRead = async () => {
 .system-content {
   font-size: 14px;
   line-height: 1.5;
-  color: #333;
+  color: #666;
+}
+
+.unread-dot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background-color: #ff4d4f;
+  border-radius: 50%;
 }
 
 .text-primary {
